@@ -1,68 +1,83 @@
 "use client"
+import { NavLink } from 'react-router-dom';
 import React from 'react';
-import { useState, useEffect, useRef } from "react"
-import { Menu, X, LogOut, User, Settings, Search, ChevronRight, Bell, Calendar, FileText, Home } from "lucide-react"
-import api from "../api/axios"
+import api from '../api/axios';
+import { useState, useEffect } from "react"
+import {
+  Menu,
+  X,
+  Search,
+  Bell,
+  User,
+  Settings,
+  LogOut,
+  Home,
+  Briefcase,
+  BarChart3,
+  Calendar,
+  Zap,
+  Globe,
+  Shield,
+  Star,
+} from "lucide-react"
 
-// Имитация компонента Link из react-router-dom
-const Link = ({ to, children, className = "", ...props }) => (
-  <a href={to} className={className} {...props}>
-    {children}
-  </a>
-)
-
-export default function Header() {
+export default function FuturisticHeader() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [activeTab, setActiveTab] = useState("dashboard")
-  const headerRef = useRef(null)
-  const searchInputRef = useRef(null)
-  const [user, setUser] = useState(null)
-  const [role, setRole] = useState("")
-  const [initials, setInitials] = useState("")
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const [activeTab, setActiveTab] = useState("home")
+  const [time, setTime] = useState(new Date())
+  const [user, setUser] = useState(null);
 
-  const getInitials = (fullName) => {
-    if (!fullName) return ""
-    const words = fullName.trim().split(" ")
-    if (words.length === 1) return words[0][0].toUpperCase()
-    return (words[0][0] + words[1][0]).toUpperCase()
-  }
+  const navigationItems = [
+    { id: "dashboard", label: "Главная", icon: Home, color: "from-blue-500 to-cyan-500" },
+    { id: "projects", label: "Проекты", icon: Briefcase, color: "from-purple-500 to-pink-500" },
+    { id: "analytics", label: "Аналитика", icon: BarChart3, color: "from-green-500 to-emerald-500" },
+    { id: "calendar", label: "Календарь", icon: Calendar, color: "from-orange-500 to-red-500" },
+  ]
+
+  const quickActions = [
+    { icon: Zap, label: "Быстрые действия", color: "text-yellow-500" },
+    { icon: Globe, label: "Сеть", color: "text-blue-500" },
+    { icon: Shield, label: "Безопасность", color: "text-green-500" },
+  ]
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await api.get("/auth/me/", {
+        const response = await api.get("/auth/me/", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-        })
-        const userData = res.data
-        setUser(userData)
-        setInitials(getInitials(userData.full_name))
-        setRole(userData.role)
-      } catch (error) {
-        console.error("Ошибка загрузки пользователя", error)
-        // Установка демо-данных для отображения в случае ошибки
-        setUser({ full_name: "Иван Петров", email: "ivan@example.com" })
-        setInitials("ИП")
-        setRole("Менеджер")
-      }
-    }
+        });
+        const data = response.data;
 
-    fetchUser()
+        const initials = data.full_name
+          .split(" ")
+          .map((word) => word[0])
+          .join("");
+
+        setUser({
+          name: data.full_name,
+          email: data.email,
+          avatar: initials,
+          role: data.role,
+          status: "online",
+        });
+      } catch (error) {
+        console.error("Ошибка при получении данных пользователя:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(timer)
   }, [])
 
-  const menuItems = [
-    { name: "Главная", path: "/dashboard", icon: Home },
-    { name: "Заявки", path: "/projects", icon: FileText },
-    { name: "Задачи", path: "/tasks", icon: Calendar },
-    { name: "Аналитика", path: "/analytics", icon: Bell },
-  ]
-
-  // Отслеживание скролла для изменения стиля хедера
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
@@ -72,372 +87,301 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Отслеживание позиции мыши для эффекта свечения
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (headerRef.current) {
-        const rect = headerRef.current.getBoundingClientRect()
-        setMousePosition({
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top,
-        })
-      }
-    }
-
-    window.addEventListener("mousemove", handleMouseMove)
-    return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [])
-
-  // Закрытие мобильного меню при изменении размера окна
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768) {
-        setIsMobileMenuOpen(false)
-      }
-    }
-
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
-
-  // Фокус на поле поиска при открытии
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      searchInputRef.current.focus()
-    }
-  }, [isSearchOpen])
-
-  // Закрытие меню при клике вне его
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isProfileOpen && !event.target.closest(".profile-menu")) {
+      const target = event.target
+      if (isProfileOpen && !target.closest(".profile-dropdown")) {
         setIsProfileOpen(false)
-      }
-      if (isSearchOpen && !event.target.closest(".search-container") && !event.target.closest(".search-trigger")) {
-        setIsSearchOpen(false)
       }
     }
 
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [isProfileOpen, isSearchOpen])
+  }, [isProfileOpen])
 
-  // Определение текущего активного пути
-  useEffect(() => {
-    const path = window.location.pathname
-    const activeItem = menuItems.find((item) => path.includes(item.path.substring(1)))
-    if (activeItem) {
-      setActiveTab(activeItem.path.substring(1))
-    }
-  }, [])
+  const formatTime = (date) => {
+    return date.toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
 
   return (
     <>
+      {/* Main Header */}
       <header
-        ref={headerRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          isScrolled ? "bg-white/90 backdrop-blur-xl text-gray-800 py-3" : "bg-transparent text-white py-5"
+          isScrolled
+            ? "bg-gray-900/95 backdrop-blur-xl border-b border-gray-700/50"
+            : "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
         }`}
-        style={{
-          boxShadow: isScrolled ? "0 4px 30px rgba(0, 0, 0, 0.03)" : "none",
-        }}
       >
-        {/* Фоновый градиент для неактивного состояния */}
-        {!isScrolled && (
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-indigo-600/90 to-violet-600/90 -z-10"></div>
-        )}
+        {/* Animated background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-cyan-600/20 animate-pulse"></div>
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>
+        </div>
 
-        {/* Интерактивный фоновый эффект */}
-        {!isScrolled && (
-          <div
-            className="absolute inset-0 opacity-30 -z-10 transition-opacity duration-1000"
-            style={{
-              background: `radial-gradient(circle 200px at ${mousePosition.x}px ${mousePosition.y}px, rgba(255, 255, 255, 0.4), transparent)`,
-            }}
-          ></div>
-        )}
-
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center">
-            {/* Логотип и название */}
-            <div className="flex items-center space-x-3 z-10">
-              <div
-                className={`relative w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden transition-all duration-500 group ${
-                  isScrolled
-                    ? "bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg shadow-blue-500/20"
-                    : "bg-white/15 backdrop-blur-md"
-                }`}
-              >
-                {/* Анимированный фон логотипа */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                {/* Анимированная звезда */}
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="relative z-10 transition-transform duration-700 ease-out transform group-hover:rotate-45 group-hover:scale-110"
-                >
-                  <path
-                    d="M12 2L14.85 8.3L22 9.3L17 14.3L18.15 21.4L12 18L5.85 21.4L7 14.3L2 9.3L9.15 8.3L12 2Z"
-                    fill="currentColor"
-                  />
-                </svg>
-
-                {/* Эффект свечения */}
-                <div className="absolute inset-0 bg-blue-500 blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 -z-10"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo Section */}
+            <div className="flex items-center space-x-4 mr-6">
+              <div className="relative group">
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                  <Star className="w-5 h-5 text-white animate-pulse" />
+                </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition-opacity duration-300"></div>
               </div>
 
-              <h1
-                className={`text-lg font-medium tracking-wide transition-all duration-500 ${
-                  isScrolled ? "text-gray-800" : "text-white"
-                }`}
-              >
-                <span className="font-bold">Мой</span>Проект
-              </h1>
+              <div className="hidden sm:block">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                  АТМ
+                </h1>
+                <p className="text-xs text-gray-400 -mt-1">Покрасочная</p>
+              </div>
+
+              {/* Time Display */}
+              <div className="hidden lg:flex items-center space-x-2 ml-8">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm font-mono text-gray-300">{formatTime(time)}</span>
+              </div>
             </div>
 
-            {/* Центральная навигация - десктоп */}
-            <nav className="hidden md:flex items-center space-x-1 absolute left-1/2 transform -translate-x-1/2">
-              <div
-                className={`flex items-center p-1 rounded-full transition-all duration-500 ${
-                  isScrolled ? "bg-gray-100" : "bg-white/10 backdrop-blur-md"
-                }`}
-              >
-                {menuItems.map(({ name, path, icon: Icon }, index) => {
-                  const isActive = path.substring(1) === activeTab
+            {/* Center Navigation */}
+            <nav className="hidden md:flex items-center space-x-2 mr-5">
+              <div className="flex items-center bg-gray-800/50 backdrop-blur-sm rounded-2xl p-1 border border-gray-700/50">
+                {navigationItems.map((item) => {
+                  const Icon = item.icon;
                   return (
-                    <Link
-                      key={index}
-                      to={path}
-                      onClick={() => setActiveTab(path.substring(1))}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center space-x-1.5 ${
-                        isActive
-                          ? isScrolled
-                            ? "bg-white text-blue-600 shadow-md shadow-blue-500/10"
-                            : "bg-white/20 text-white backdrop-blur-md"
-                          : isScrolled
-                            ? "hover:bg-white text-gray-600 hover:text-blue-600"
-                            : "hover:bg-white/20 text-white/80 hover:text-white"
-                      }`}
+                    <NavLink
+                      key={item.id}
+                      to={item.id === 'home' ? '/dashboard' : `/${item.id}`}
+                      className={({ isActive }) =>
+                        `relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center space-x-2 group ${
+                          isActive
+                            ? "text-white bg-gray-700/80 shadow-lg"
+                            : "text-gray-400 hover:text-white hover:bg-gray-700/40"
+                        }`
+                      }
                     >
-                      <Icon className="w-4 h-4" />
-                      <span>{name}</span>
-                    </Link>
-                  )
+                      <Icon
+                        className={`w-4 h-4 transition-all duration-300 ${
+                          // scale эффект
+                          (window.location.pathname === (item.id === 'home' ? '/dashboard' : `/${item.id}`))
+                            ? "scale-110"
+                            : "group-hover:scale-105"
+                        }`}
+                      />
+                      <span>{item.label}</span>
+
+                      {window.location.pathname === (item.id === 'home' ? '/dashboard' : `/${item.id}`) && (
+                        <div
+                          className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r ${item.color} rounded-full`}
+                        ></div>
+                      )}
+                    </NavLink>
+                  );
                 })}
               </div>
             </nav>
 
-            {/* Правая часть - поиск и профиль */}
-            <div className="flex items-center space-x-1 z-10">
-              {/* Кнопка поиска */}
-              <button
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={`p-2 rounded-full transition-all duration-300 search-trigger ${
-                  isScrolled
-                    ? "hover:bg-gray-100 text-gray-600 hover:text-blue-600"
-                    : "hover:bg-white/10 text-white/90 hover:text-white"
-                } ${isSearchOpen ? (isScrolled ? "bg-gray-100" : "bg-white/10") : ""}`}
-              >
-                <Search className="w-5 h-5" />
-              </button>
+            {/* Right Section */}
+            <div className="flex items-center space-x-3">
+              {/* Search */}
+              <div className="hidden sm:block relative">
+                <div className={`relative transition-all duration-300 ${isSearchFocused ? "scale-105" : ""}`}>
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Поиск в системе..."
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setIsSearchFocused(false)}
+                    className="w-64 pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-300 backdrop-blur-sm"
+                  />
+                  {isSearchFocused && (
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl blur"></div>
+                  )}
+                </div>
+              </div>
 
-              {/* Выпадающее меню профиля */}
-              <div className="relative profile-menu">
+              {/* Profile */}
+              <div className="relative profile-dropdown">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-full transition-all duration-300 ${
-                    isScrolled ? "hover:bg-gray-100 text-gray-700" : "hover:bg-white/10 text-white/90 hover:text-white"
-                  } ${isProfileOpen ? (isScrolled ? "bg-gray-100" : "bg-white/10") : ""}`}
+                  className="flex items-center space-x-3 p-2 hover:bg-gray-700/50 rounded-xl transition-all duration-200 group"
                 >
-                  <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                      isScrolled
-                        ? "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600"
-                        : "bg-white/15 text-white"
-                    }`}
-                  >
-                    {initials}
+                  <div className="relative">
+                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      {user?.avatar}
+                    </div>
+                    <div
+                      className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-gray-900 ${
+                        user?.status === "online" ? "bg-green-400" : "bg-gray-500"
+                      }`}
+                    ></div>
+                  </div>
+
+                  <div className="hidden lg:block text-left">
+                    <p className="text-sm font-medium text-white">{user?.name}</p>
+                    <p className="text-xs text-gray-400">{user?.role}</p>
                   </div>
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-60 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl py-2 text-gray-800 z-10 border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-5 duration-300">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium">{user?.full_name || "Загрузка..."}</p>
-                      <p className="text-xs text-gray-500">{user?.email || "Загрузка..."}</p>
-                      <div className="mt-1 px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-full inline-block">
-                        {role || "Пользователь"}
+                  <div className="absolute right-0 mt-2 w-72 bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-700/50 py-2 animate-in fade-in slide-in-from-top-5 duration-300">
+                    <div className="px-4 py-3 border-b border-gray-700/50">
+                      <div className="flex items-center space-x-3">
+                        <div className="relative">
+                          <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                            {user.avatar}
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-gray-800"></div>
+                        </div>
+                        <div>
+                          <p className="font-medium text-white">{user.name}</p>
+                          <p className="text-sm text-gray-400">{user.email}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="inline-block px-2 py-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-400 text-xs rounded-full border border-cyan-500/30">
+                              {user.role}
+                            </span>
+                            <span className="text-xs text-green-400 flex items-center">
+                              <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1 animate-pulse"></div>
+                              Онлайн
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="py-1">
+
+                    <div className="py-2">
                       <a
                         href="#"
-                        className="block px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-150 flex items-center group"
+                        className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors duration-150"
                       >
-                        <User className="w-4 h-4 mr-2 text-gray-500 group-hover:text-blue-500 transition-colors" />
-                        <span>Мой профиль</span>
-                        <ChevronRight className="w-4 h-4 ml-auto text-gray-400 group-hover:text-blue-500 transition-colors opacity-0 group-hover:opacity-100" />
+                        <User className="w-4 h-4 mr-3 text-cyan-400" />
+                        Профиль
                       </a>
                       <a
                         href="#"
-                        className="block px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-150 flex items-center group"
+                        className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors duration-150"
                       >
-                        <Settings className="w-4 h-4 mr-2 text-gray-500 group-hover:text-blue-500 transition-colors" />
-                        <span>Настройки</span>
-                        <ChevronRight className="w-4 h-4 ml-auto text-gray-400 group-hover:text-blue-500 transition-colors opacity-0 group-hover:opacity-100" />
+                        <Settings className="w-4 h-4 mr-3 text-purple-400" />
+                        Настройки
                       </a>
                     </div>
-                    <div className="border-t border-gray-100 mt-1 pt-1">
-                      <Link
-                        to="/login"
-                        className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 flex items-center group"
-                      >
-                        <LogOut className="w-4 h-4 mr-2 group-hover:text-red-600" />
-                        <span>Выход</span>
-                      </Link>
+
+                    <div className="border-t border-gray-700/50 pt-2">
+                      <button className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-150">
+                        <LogOut className="w-4 h-4 mr-3" />
+                        Выйти из системы
+                      </button>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Кнопка мобильного меню */}
+              {/* Mobile Menu Button */}
               <button
-                className="md:hidden p-2 rounded-full transition-colors duration-200"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-xl transition-colors duration-200"
               >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
         </div>
-
-        {/* Поиск */}
-        {isSearchOpen && (
-          <div className="absolute inset-x-0 top-full mt-2 px-4 search-container animate-in fade-in slide-in-from-top-5 duration-300">
-            <div className="container mx-auto">
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl p-4 border border-gray-100">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Поиск по проектам, задачам и документам..."
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                  />
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <span className="text-xs text-gray-500">Популярные запросы:</span>
-                  {["Активные проекты", "Задачи на сегодня", "Документация", "Отчеты"].map((tag, index) => (
-                    <button
-                      key={index}
-                      className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200"
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </header>
 
-      {/* Мобильное меню */}
-      <div
-        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300 ${
-          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setIsMobileMenuOpen(false)}
-      ></div>
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
 
-      <div
-        className={`fixed inset-y-0 right-0 w-[280px] bg-white z-50 md:hidden shadow-2xl transition-transform duration-500 ease-out transform ${
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M12 2L14.85 8.3L22 9.3L17 14.3L18.15 21.4L12 18L5.85 21.4L7 14.3L2 9.3L9.15 8.3L12 2Z"
-                    fill="currentColor"
+          <div className="fixed top-0 right-0 w-80 h-full bg-gray-900/95 backdrop-blur-xl shadow-2xl transform transition-transform duration-300 ease-out border-l border-gray-700/50">
+            <div className="flex flex-col h-full">
+              {/* Mobile Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-700/50">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                    <Star className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                    NeoSpace
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 text-gray-400 hover:text-white rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Mobile Search */}
+              <div className="p-4 border-b border-gray-700/50">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Поиск..."
+                    className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
                   />
-                </svg>
-              </div>
-              <h2 className="font-medium text-gray-800">МойПроект</h2>
-            </div>
-            <button
-              className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-auto p-4">
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Поиск..."
-                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <nav className="space-y-1">
-              {menuItems.map(({ name, path, icon: Icon }, index) => {
-                const isActive = path.substring(1) === activeTab
-                return (
-                  <Link
-                    key={index}
-                    to={path}
-                    onClick={() => {
-                      setActiveTab(path.substring(1))
-                      setIsMobileMenuOpen(false)
-                    }}
-                    className={`flex items-center px-4 py-3 rounded-xl transition-colors duration-200 ${
-                      isActive
-                        ? "bg-blue-50 text-blue-600 font-medium"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 mr-3" />
-                    <span>{name}</span>
-                    {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600"></div>}
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="p-4 border-t border-gray-100">
-            {user ? (
-              <div className="flex items-center p-2 rounded-xl hover:bg-gray-50 transition-colors duration-200">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 font-medium">
-                  {initials}
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-800">{user.full_name}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
-                </div>
-                <Link to="/login" className="ml-auto p-1.5 rounded-full hover:bg-gray-100 text-gray-500">
-                  <LogOut className="w-4 h-4" />
-                </Link>
               </div>
-            ) : (
-              <div className="p-2 text-center text-sm text-gray-500">Загрузка данных пользователя...</div>
-            )}
+
+              {/* Mobile Navigation */}
+              <nav className="flex-1 p-4 space-y-2">
+                {navigationItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = activeTab === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id)
+                        setIsMobileMenuOpen(false)
+                      }}
+                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                        isActive
+                          ? "bg-gray-700/80 text-white border border-gray-600/50"
+                          : "text-gray-400 hover:text-white hover:bg-gray-700/40"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{item.label}</span>
+                      {isActive && (
+                        <div className={`ml-auto w-2 h-2 rounded-full bg-gradient-to-r ${item.color}`}></div>
+                      )}
+                    </button>
+                  )
+                })}
+              </nav>
+
+              {/* Mobile User Section */}
+              <div className="p-4 border-t border-gray-700/50">
+                <div className="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-xl border border-gray-700/50">
+                  <div className="relative">
+                    <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                      {user.avatar}
+                    </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-900"></div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-white">{user.name}</p>
+                    <p className="text-sm text-gray-400">{user.email}</p>
+                  </div>
+                  <button className="p-2 text-gray-400 hover:text-red-400 rounded-lg transition-colors duration-200">
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Spacer */}
+      <div className="h-16"></div>
     </>
   )
 }
