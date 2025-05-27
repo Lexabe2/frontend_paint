@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://api-baopaint.ru/api',
-  // headers: { 'Content-Type': 'application/json' },
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
 export default api;
