@@ -1,24 +1,24 @@
 "use client"
-import { NavLink } from 'react-router-dom';
 import React from 'react';
-import api from '../api/axios';
+import { NavLink } from "react-router-dom"
+import api from "../api/axios"
 import { useState, useEffect } from "react"
 import {
   Menu,
   X,
   Search,
-  Bell,
   User,
   Settings,
   LogOut,
   Home,
-  Briefcase,
+  ClipboardIcon,
   BarChart3,
   Calendar,
   Zap,
   Globe,
   Shield,
   Star,
+  Users,
 } from "lucide-react"
 
 export default function FuturisticHeader() {
@@ -28,14 +28,81 @@ export default function FuturisticHeader() {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [activeTab, setActiveTab] = useState("home")
   const [time, setTime] = useState(new Date())
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null)
 
-  const navigationItems = [
-    { id: "dashboard", label: "Главная", icon: Home, color: "from-blue-500 to-cyan-500" },
-    { id: "projects", label: "Проекты", icon: Briefcase, color: "from-purple-500 to-pink-500" },
-    { id: "analytics", label: "Аналитика", icon: BarChart3, color: "from-green-500 to-emerald-500" },
-    { id: "calendar", label: "Календарь", icon: Calendar, color: "from-orange-500 to-red-500" },
+  // Определяем разрешения для каждой роли
+  const rolePermissions = {
+    admin: ["dashboard", "application", "analytics", "calendar", "users", "settings"],
+    moderator: ["dashboard", "application", "analytics", "calendar"],
+    user: ["dashboard", "application"],
+  }
+
+  // Функция проверки разрешений
+  const hasPermission = (permission) => {
+    if (!user) return false
+    const userPermissions = rolePermissions[user.role] || []
+    return userPermissions.includes(permission)
+  }
+
+  // Функция проверки ролей
+  const hasRole = (roles) => {
+    return user ? roles.includes(user.role) : false
+  }
+
+  // Все навигационные элементы с указанием необходимых разрешений
+  const allNavigationItems = [
+    {
+      id: "dashboard",
+      label: "Главная",
+      icon: Home,
+      color: "from-blue-500 to-cyan-500",
+      permission: "dashboard",
+    },
+    {
+      id: "application",
+      label: "Заявки",
+      icon: ClipboardIcon,
+      color: "from-purple-500 to-pink-500",
+      permission: "application",
+    },
+    {
+      id: "analytics",
+      label: "Аналитика",
+      icon: BarChart3,
+      color: "from-green-500 to-emerald-500",
+      permission: "analytics",
+    },
+    {
+      id: "calendar",
+      label: "Календарь",
+      icon: Calendar,
+      color: "from-orange-500 to-red-500",
+      permission: "calendar",
+    },
+    {
+      id: "users",
+      label: "Пользователи",
+      icon: Users,
+      color: "from-indigo-500 to-purple-500",
+      permission: "users",
+      requiredRoles: ["admin"], // Только для админов
+    },
   ]
+
+  // Фильтруем навигацию по разрешениям пользователя
+  const navigationItems = allNavigationItems.filter((item) => {
+    // Проверяем разрешение
+    if (item.permission && !hasPermission(item.permission)) {
+      return false
+    }
+
+    // Проверяем роли, если указаны
+    if (item.requiredRoles && !hasRole(item.requiredRoles)) {
+      return false
+    }
+
+    return true
+  })
 
   const quickActions = [
     { icon: Zap, label: "Быстрые действия", color: "text-yellow-500" },
@@ -50,13 +117,13 @@ export default function FuturisticHeader() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-        });
-        const data = response.data;
+        })
+        const data = response.data
 
         const initials = data.full_name
           .split(" ")
           .map((word) => word[0])
-          .join("");
+          .join("")
 
         setUser({
           name: data.full_name,
@@ -64,14 +131,16 @@ export default function FuturisticHeader() {
           avatar: initials,
           role: data.role,
           status: "online",
-        });
+        })
       } catch (error) {
-        console.error("Ошибка при получении данных пользователя:", error);
+        console.error("Ошибка при получении данных пользователя:", error)
+        // Перенаправляем на страницу входа при ошибке
+        window.location.href = "/login"
       }
-    };
+    }
 
-    fetchUser();
-  }, []);
+    fetchUser()
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000)
@@ -99,11 +168,42 @@ export default function FuturisticHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [isProfileOpen])
 
+  // Функция для проверки доступа к странице при клике
+  const handleNavigation = (item, navigate) => {
+    // Проверяем разрешения перед навигацией
+    if (item.permission && !hasPermission(item.permission)) {
+      alert(`У вас нет доступа к разделу "${item.label}"`)
+      return
+    }
+
+    if (item.requiredRoles && !hasRole(item.requiredRoles)) {
+      alert(`Недостаточно прав для доступа к разделу "${item.label}"`)
+      return
+    }
+
+    // Если все проверки пройдены, выполняем навигацию
+    navigate()
+  }
+
   const formatTime = (date) => {
     return date.toLocaleTimeString("ru-RU", {
       hour: "2-digit",
       minute: "2-digit",
     })
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token")
+    window.location.href = "/login"
+  }
+
+  // Не показываем header, если пользователь не загружен
+  if (!user) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-50 h-16 bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-400">Загрузка...</div>
+      </div>
+    )
   }
 
   return (
@@ -147,15 +247,28 @@ export default function FuturisticHeader() {
               </div>
             </div>
 
-            {/* Center Navigation */}
+            {/* Center Navigation - только разрешенные элементы */}
             <nav className="hidden md:flex items-center space-x-2 mr-5">
               <div className="flex items-center bg-gray-800/50 backdrop-blur-sm rounded-2xl p-1 border border-gray-700/50">
                 {navigationItems.map((item) => {
-                  const Icon = item.icon;
+                  const Icon = item.icon
                   return (
                     <NavLink
                       key={item.id}
-                      to={item.id === 'home' ? '/dashboard' : `/${item.id}`}
+                      to={item.id === "dashboard" ? "/dashboard" : `/${item.id}`}
+                      onClick={(e) => {
+                        // Дополнительная проверка при клике
+                        if (item.permission && !hasPermission(item.permission)) {
+                          e.preventDefault()
+                          alert(`У вас нет доступа к разделу "${item.label}"`)
+                          return
+                        }
+                        if (item.requiredRoles && !hasRole(item.requiredRoles)) {
+                          e.preventDefault()
+                          alert(`Недостаточно прав для доступа к разделу "${item.label}"`)
+                          return
+                        }
+                      }}
                       className={({ isActive }) =>
                         `relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center space-x-2 group ${
                           isActive
@@ -166,21 +279,20 @@ export default function FuturisticHeader() {
                     >
                       <Icon
                         className={`w-4 h-4 transition-all duration-300 ${
-                          // scale эффект
-                          (window.location.pathname === (item.id === 'home' ? '/dashboard' : `/${item.id}`))
+                          window.location.pathname === (item.id === "dashboard" ? "/dashboard" : `/${item.id}`)
                             ? "scale-110"
                             : "group-hover:scale-105"
                         }`}
                       />
                       <span>{item.label}</span>
 
-                      {window.location.pathname === (item.id === 'home' ? '/dashboard' : `/${item.id}`) && (
+                      {window.location.pathname === (item.id === "dashboard" ? "/dashboard" : `/${item.id}`) && (
                         <div
                           className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r ${item.color} rounded-full`}
                         ></div>
                       )}
                     </NavLink>
-                  );
+                  )
                 })}
               </div>
             </nav>
@@ -261,17 +373,23 @@ export default function FuturisticHeader() {
                         <User className="w-4 h-4 mr-3 text-cyan-400" />
                         Профиль
                       </a>
-                      <a
-                        href="#"
-                        className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors duration-150"
-                      >
-                        <Settings className="w-4 h-4 mr-3 text-purple-400" />
-                        Настройки
-                      </a>
+                      {/* Показываем настройки только если есть разрешение */}
+                      {hasPermission("settings") && (
+                        <a
+                          href="#"
+                          className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors duration-150"
+                        >
+                          <Settings className="w-4 h-4 mr-3 text-purple-400" />
+                          Настройки
+                        </a>
+                      )}
                     </div>
 
                     <div className="border-t border-gray-700/50 pt-2">
-                      <button className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-150">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-150"
+                      >
                         <LogOut className="w-4 h-4 mr-3" />
                         Выйти из системы
                       </button>
@@ -306,7 +424,7 @@ export default function FuturisticHeader() {
                     <Star className="w-4 h-4 text-white" />
                   </div>
                   <h2 className="font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                    NeoSpace
+                    АТМ
                   </h2>
                 </div>
                 <button
@@ -329,16 +447,27 @@ export default function FuturisticHeader() {
                 </div>
               </div>
 
-              {/* Mobile Navigation */}
+              {/* Mobile Navigation - только разрешенные элементы */}
               <nav className="flex-1 p-4 space-y-2">
                 {navigationItems.map((item) => {
                   const Icon = item.icon
-                  const isActive = activeTab === item.id
+                  const isActive = window.location.pathname === (item.id === "dashboard" ? "/dashboard" : `/${item.id}`)
                   return (
-                    <button
+                    <NavLink
                       key={item.id}
-                      onClick={() => {
-                        setActiveTab(item.id)
+                      to={item.id === "dashboard" ? "/dashboard" : `/${item.id}`}
+                      onClick={(e) => {
+                        // Проверяем доступ при клике в мобильном меню
+                        if (item.permission && !hasPermission(item.permission)) {
+                          e.preventDefault()
+                          alert(`У вас нет доступа к разделу "${item.label}"`)
+                          return
+                        }
+                        if (item.requiredRoles && !hasRole(item.requiredRoles)) {
+                          e.preventDefault()
+                          alert(`Недостаточно прав для доступа к разделу "${item.label}"`)
+                          return
+                        }
                         setIsMobileMenuOpen(false)
                       }}
                       className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
@@ -352,7 +481,7 @@ export default function FuturisticHeader() {
                       {isActive && (
                         <div className={`ml-auto w-2 h-2 rounded-full bg-gradient-to-r ${item.color}`}></div>
                       )}
-                    </button>
+                    </NavLink>
                   )
                 })}
               </nav>
@@ -370,7 +499,10 @@ export default function FuturisticHeader() {
                     <p className="font-medium text-white">{user.name}</p>
                     <p className="text-sm text-gray-400">{user.email}</p>
                   </div>
-                  <button className="p-2 text-gray-400 hover:text-red-400 rounded-lg transition-colors duration-200">
+                  <button
+                    onClick={handleLogout}
+                    className="p-2 text-gray-400 hover:text-red-400 rounded-lg transition-colors duration-200"
+                  >
                     <LogOut className="w-4 h-4" />
                   </button>
                 </div>

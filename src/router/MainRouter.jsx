@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import App from '../App';
 import Dashboard from '../pages/Dashboard';
+import Application from '../pages/Application';
 import PrivateRoute from '../components/PrivateRoute';
 import Layout from '../layouts/Layout';
 
@@ -20,6 +21,7 @@ export default function MainRouter() {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/application" element={<Application />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 
