@@ -3,6 +3,7 @@ import React from 'react';
 import { NavLink } from "react-router-dom"
 import api from "../api/axios"
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom";
 import {
   Menu,
   X,
@@ -375,13 +376,12 @@ export default function FuturisticHeader() {
                       </a>
                       {/* Показываем настройки только если есть разрешение */}
                       {hasPermission("settings") && (
-                        <a
-                          href="#"
+                        <Link
+                          to="/settings"
                           className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors duration-150"
                         >
-                          <Settings className="w-4 h-4 mr-3 text-purple-400" />
                           Настройки
-                        </a>
+                        </Link>
                       )}
                     </div>
 
