@@ -147,7 +147,7 @@ export default function AddRequestPage() {
       </div>
 
       <div className="mt-8 space-y-4">
-        <h2 className="text-xl font-semibold">Список заявок 1</h2>
+        <h2 className="text-xl font-semibold">Список заявок</h2>
         {requests.length === 0 ? (
           <p className="text-gray-500 text-center py-4">Заявки отсутствуют</p>
         ) : (
