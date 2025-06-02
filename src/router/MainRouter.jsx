@@ -4,6 +4,7 @@ import App from '../App';
 import Dashboard from '../pages/Dashboard';
 import Application from '../pages/Application';
 import Settings from '../pages/Settings';
+import Logs from '../pages/Logs';
 import PrivateRoute from '../components/PrivateRoute';
 import Layout from '../layouts/Layout';
 
@@ -24,6 +25,7 @@ export default function MainRouter() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/application" element={<Application />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/logs" element={<Logs />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 
