@@ -20,6 +20,7 @@ import {
   Star,
   Users,
   FileText,
+  Settings,
 } from "lucide-react"
 
 export default function FuturisticHeader() {
@@ -86,14 +87,6 @@ export default function FuturisticHeader() {
       icon: Users,
       color: "from-indigo-500 to-purple-500",
       permission: "users",
-      requiredRoles: ["admin"], // Только для админов
-    },
-    {
-      id: "logs",
-      label: "Логи",
-      icon: FileText,
-      color: "from-red-500 to-orange-500",
-      permission: "logs",
       requiredRoles: ["admin"], // Только для админов
     },
   ]
@@ -388,7 +381,17 @@ export default function FuturisticHeader() {
                           to="/settings"
                           className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors duration-150"
                         >
+                          <Settings className="w-4 h-4 mr-3 text-gray-400" />
                           Настройки
+                        </Link>
+                      )}
+                      {hasPermission("logs") && (
+                        <Link
+                          to="/logs"
+                          className="flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors duration-150"
+                        >
+                          <FileText className="w-4 h-4 mr-3 text-orange-400" />
+                          Логи
                         </Link>
                       )}
                     </div>
