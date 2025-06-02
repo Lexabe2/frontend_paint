@@ -19,6 +19,18 @@ export default function CodeStep({ code, setCode, onVerify }) {
     }
   }, [])
 
+  // Автоматическая верификация при полном вводе кода
+  useEffect(() => {
+    if (code.length === 6 && !isLoading) {
+      // Небольшая задержка для лучшего UX
+      const timer = setTimeout(() => {
+        handleVerify()
+      }, 300)
+
+      return () => clearTimeout(timer)
+    }
+  }, [code, isLoading])
+
   // Таймер обратного отсчета
   useEffect(() => {
     if (timeLeft <= 0) return
@@ -68,6 +80,11 @@ export default function CodeStep({ code, setCode, onVerify }) {
     if (e.key === "ArrowRight" && index < 5) {
       inputRefs.current[index + 1].focus()
       setActiveInput(index + 1)
+    }
+
+    // При нажатии Enter - попытка верификации
+    if (e.key === "Enter" && code.length === 6) {
+      handleVerify()
     }
   }
 
@@ -147,6 +164,7 @@ export default function CodeStep({ code, setCode, onVerify }) {
                 className={`
                   relative w-12 h-16 rounded-xl overflow-hidden
                   ${activeInput === index ? "ring-2 ring-green-500 ring-offset-2" : "border-2 border-gray-200"}
+                  ${code.length === 6 && !isLoading ? "border-green-300 bg-green-50" : ""}
                 `}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -162,12 +180,27 @@ export default function CodeStep({ code, setCode, onVerify }) {
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   onPaste={index === 0 ? handlePaste : undefined}
                   onFocus={() => setActiveInput(index)}
-                  className="w-full h-full text-center text-xl font-bold bg-transparent focus:outline-none"
+                  disabled={isLoading}
+                  className={`
+                    w-full h-full text-center text-xl font-bold bg-transparent focus:outline-none
+                    ${isLoading ? "text-gray-400" : "text-gray-800"}
+                  `}
                 />
 
                 {/* Анимированный индикатор активного поля */}
-                {activeInput === index && (
+                {activeInput === index && !isLoading && (
                   <motion.div className="absolute bottom-0 left-0 w-full h-1 bg-green-500" layoutId="activeIndicator" />
+                )}
+
+                {/* Индикатор загрузки для заполненных полей */}
+                {code[index] && isLoading && (
+                  <motion.div
+                    className="absolute inset-0 bg-green-100 flex items-center justify-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  </motion.div>
                 )}
               </motion.div>
             ))}
@@ -176,15 +209,52 @@ export default function CodeStep({ code, setCode, onVerify }) {
           {/* Визуальный индикатор прогресса */}
           <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-green-500"
+              className={`h-full ${code.length === 6 ? "bg-green-500" : "bg-blue-500"}`}
               initial={{ width: 0 }}
               animate={{ width: `${(code.length / 6) * 100}%` }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             />
           </div>
+
+          {/* Статус сообщение */}
+          <div className="mt-3 text-center">
+            <AnimatePresence mode="wait">
+              {isLoading ? (
+                <motion.p
+                  key="verifying"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-sm text-green-600 font-medium"
+                >
+                  Проверяем код...
+                </motion.p>
+              ) : code.length === 6 ? (
+                <motion.p
+                  key="complete"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-sm text-green-600 font-medium"
+                >
+                  Код введен полностью
+                </motion.p>
+              ) : (
+                <motion.p
+                  key="entering"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-sm text-gray-500"
+                >
+                  {code.length > 0 ? `Введено ${code.length} из 6 цифр` : "Введите код из Telegram"}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Кнопка подтверждения */}
+        {/* Кнопка подтверждения (теперь опциональная) */}
         <motion.button
           className={`
             w-full py-4 px-6 rounded-xl font-medium text-white
@@ -214,7 +284,7 @@ export default function CodeStep({ code, setCode, onVerify }) {
                 exit={{ opacity: 0 }}
                 className="flex items-center"
               >
-                <span>Подтвердить</span>
+                <span>{code.length === 6 ? "Подтвердить сейчас" : "Введите полный код"}</span>
                 <ArrowRight className="w-5 h-5 ml-2" />
               </motion.div>
             )}
@@ -245,6 +315,8 @@ export default function CodeStep({ code, setCode, onVerify }) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
+        Код будет проверен автоматически после ввода всех 6 цифр
+        <br />
         Проблемы с получением кода? <button className="text-green-600 hover:underline">Свяжитесь с поддержкой</button>
       </motion.div>
     </div>

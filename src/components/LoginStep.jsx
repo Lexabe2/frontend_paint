@@ -36,6 +36,22 @@ export default function LoginStep({ username, password, setUsername, setPassword
     }
   }
 
+  // Обработчик нажатия клавиш
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && isFormValid && !isLoading) {
+      e.preventDefault()
+      handleLogin()
+    }
+  }
+
+  // Обработчик отправки формы
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (isFormValid && !isLoading) {
+      handleLogin()
+    }
+  }
+
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-xl p-6 shadow-md">
@@ -48,7 +64,7 @@ export default function LoginStep({ username, password, setUsername, setPassword
           <p className="text-gray-500">Введите ваши учетные данные для входа</p>
         </div>
 
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Поле логина */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Логин</label>
@@ -62,6 +78,10 @@ export default function LoginStep({ username, password, setUsername, setPassword
                 placeholder="Введите ваш логин"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading}
+                autoComplete="username"
+                type="text"
               />
             </div>
           </div>
@@ -79,11 +99,16 @@ export default function LoginStep({ username, password, setUsername, setPassword
                 placeholder="Введите ваш пароль"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading}
+                autoComplete="current-password"
               />
               <button
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+                disabled={isLoading}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5 text-gray-400" />
@@ -104,6 +129,7 @@ export default function LoginStep({ username, password, setUsername, setPassword
                 className="h-4 w-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                 checked={rememberMe}
                 onChange={() => setRememberMe(!rememberMe)}
+                disabled={isLoading}
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                 Запомнить меня
@@ -118,12 +144,12 @@ export default function LoginStep({ username, password, setUsername, setPassword
 
           {/* Кнопка входа */}
           <button
+            type="submit"
             className={`
               w-full py-3 px-4 rounded-lg font-medium text-white
               transition-colors duration-200
               ${isFormValid && !isLoading ? "bg-blue-500 hover:bg-blue-600" : "bg-gray-300 cursor-not-allowed"}
             `}
-            onClick={handleLogin}
             disabled={!isFormValid || isLoading}
           >
             {isLoading ? (
@@ -135,7 +161,7 @@ export default function LoginStep({ username, password, setUsername, setPassword
               <span>Войти</span>
             )}
           </button>
-        </div>
+        </form>
 
         {/* Регистрация */}
         <div className="mt-6 text-center">
@@ -149,7 +175,7 @@ export default function LoginStep({ username, password, setUsername, setPassword
       </div>
 
       {/* Дополнительная информация */}
-      <div className="mt-4 text-center text-xs text-gray-500">Защищено шифрованием. Ваши данные в безопасности.</div>
+      <div className="mt-4 text-center text-xs text-gray-500">Нажмите Enter для входа • Защищено шифрованием</div>
     </div>
   )
 }
