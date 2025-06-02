@@ -3,13 +3,12 @@ import React from 'react';
 import { NavLink } from "react-router-dom"
 import api from "../api/axios"
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"
 import {
   Menu,
   X,
   Search,
   User,
-  Settings,
   LogOut,
   Home,
   ClipboardIcon,
@@ -20,6 +19,7 @@ import {
   Shield,
   Star,
   Users,
+  FileText,
 } from "lucide-react"
 
 export default function FuturisticHeader() {
@@ -33,7 +33,7 @@ export default function FuturisticHeader() {
 
   // Определяем разрешения для каждой роли
   const rolePermissions = {
-    admin: ["dashboard", "application", "analytics", "calendar", "users", "settings"],
+    admin: ["dashboard", "application", "analytics", "calendar", "users", "settings", "logs"],
     moderator: ["dashboard", "application", "analytics", "calendar"],
     user: ["dashboard", "application"],
   }
@@ -86,6 +86,14 @@ export default function FuturisticHeader() {
       icon: Users,
       color: "from-indigo-500 to-purple-500",
       permission: "users",
+      requiredRoles: ["admin"], // Только для админов
+    },
+    {
+      id: "logs",
+      label: "Логи",
+      icon: FileText,
+      color: "from-red-500 to-orange-500",
+      permission: "logs",
       requiredRoles: ["admin"], // Только для админов
     },
   ]
