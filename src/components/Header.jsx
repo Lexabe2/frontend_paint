@@ -239,7 +239,7 @@ export default function FuturisticHeader() {
                 <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                   АТМ
                 </h1>
-                <p className="text-xs text-gray-400 -mt-1">Покрасочная</p>
+                <p className="text-xs text-gray-400 -mt-1">Покрасочная 1</p>
               </div>
 
               {/* Time Display */}
