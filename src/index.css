@@ -1,1 +1,106 @@
 @import "tailwindcss";
+/* PWA specific styles */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-pt {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Touch-friendly button sizes */
+@media (max-width: 767px) {
+  button,
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Smooth scrolling for mobile */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent zoom on input focus on mobile */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Hide scrollbars but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* PWA splash screen styles */
+@media (display-mode: standalone) {
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* Status bar styles for different devices */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .status-bar {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Bottom navigation safe area */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
+  }
+}
+
+/* Desktop-specific styles */
+@media (min-width: 768px) {
+  .desktop-nav {
+    display: flex;
+  }
+
+  .mobile-nav {
+    display: none;
+  }
+
+  .desktop-search {
+    width: 300px;
+  }
+}
+
+/* Animations for desktop */
+@media (min-width: 768px) {
+  .hover-glow:hover {
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+  }
+
+  .menu-item-hover:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Print styles */
+@media print {
+  header,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
