@@ -10,6 +10,20 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+      cleanupOutdatedCaches: true,
+      clientsClaim: true,
+      skipWaiting: true,
+      runtimeCaching: [
+        {
+          urlPattern: ({ request }) => request.destination === 'document',
+          handler: 'NetworkFirst',
+          options: {
+            cacheName: 'html-cache',
+          },
+        },
+      ],
+    },
       includeAssets: ['apple-touch-icon.png'],
       devOptions: {
         enabled: true // 👈 ДОБАВЬ ЭТО
