@@ -256,7 +256,7 @@ export default function ResponsiveHeader() {
                 >
                   АТМ
                 </h1>
-                <p className={`text-xs ${isMobile ? "text-gray-500" : "text-gray-400"} -mt-1`}>Покрасочная</p>
+                <p className={`text-xs ${isMobile ? "text-gray-500" : "text-gray-400"} -mt-1`}>Покрасочная 1</p>
               </div>
 
               {/* Time Display - только для десктопа */}
