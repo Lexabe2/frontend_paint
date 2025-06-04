@@ -5,6 +5,8 @@ import Dashboard from '../pages/Dashboard';
 import AddRequestPage from '../pages/Application';
 import Settings from '../pages/Settings';
 import Logs from '../pages/Logs';
+import Registration from '../pages/Registration';
+import RegistrationWork from '../pages/RegistrationWork';
 import PrivateRoute from '../components/PrivateRoute';
 import Layout from '../layouts/Layout';
 
@@ -26,6 +28,8 @@ export default function MainRouter() {
         <Route path="/application" element={<AddRequestPage />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/logs" element={<Logs />} />
+        <Route path="/registration" element={<Registration />} />
+        <Route path="/requests/:id/receive" element={<RegistrationWork />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 

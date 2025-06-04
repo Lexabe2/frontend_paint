@@ -31,7 +31,7 @@ export default function Layout() {
   return (
     <>
       <Header />
-      <main className="p-4">
+      <main className="p-4 pb-24">
         <Outlet />
       </main>
     </>

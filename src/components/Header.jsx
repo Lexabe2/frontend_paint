@@ -6,19 +6,16 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Menu,
   X,
-  Search,
+  PackageCheck,
   User,
   LogOut,
   Home,
   ClipboardIcon,
-  BarChart3,
   Calendar,
   Users,
   Settings,
   FileText,
   Star,
-  Bell,
-  Wifi,
   Shield,
   Zap,
   Globe,
@@ -37,8 +34,8 @@ export default function ResponsiveHeader() {
 
   // Определяем разрешения для каждой роли
   const rolePermissions = {
-    admin: ["dashboard", "application", "analytics", "calendar", "users", "settings", "logs"],
-    moderator: ["dashboard", "application", "analytics", "calendar"],
+    admin: ["dashboard", "application", "registration", "calendar", "users", "settings", "logs"],
+    moderator: ["dashboard", "application", "registration", "calendar"],
     user: ["dashboard", "application"],
   }
 
@@ -73,12 +70,12 @@ export default function ResponsiveHeader() {
       path: "/application",
     },
     {
-      id: "analytics",
-      label: "Аналитика",
-      icon: BarChart3,
+      id: "registration",
+      label: "Приемка",
+      icon: PackageCheck,
       color: "from-green-500 to-emerald-500",
-      permission: "analytics",
-      path: "/analytics",
+      permission: "registration",
+      path: "/registration",
     },
     {
       id: "calendar",
@@ -259,7 +256,7 @@ export default function ResponsiveHeader() {
 
               {/* Time Display - только для десктопа */}
               {!isMobile && (
-                <div className="hidden lg:flex items-center space-x-2 ml-8">
+                <div className="hidden lg:flex items-center space-x-2 ml-8 mr-3">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-sm font-mono text-gray-300">{formatTime(time)}</span>
                 </div>
@@ -268,7 +265,7 @@ export default function ResponsiveHeader() {
 
             {/* Center Navigation - только для десктопа */}
             {!isMobile && (
-              <nav className="hidden md:flex items-center space-x-2">
+              <nav className="hidden md:flex items-center space-x-2 mr-3">
                 <div className="flex items-center bg-gray-800/50 backdrop-blur-sm rounded-2xl p-1 border border-gray-700/50">
                   {navigationItems.map((item) => {
                     const Icon = item.icon
@@ -306,22 +303,6 @@ export default function ResponsiveHeader() {
 
             {/* Right Section */}
             <div className="flex items-center space-x-2">
-                <div className="hidden sm:block relative">
-                  <div className={`relative transition-all duration-300 ${isSearchFocused ? "scale-105" : ""}`}>
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Поиск в системе..."
-                      onFocus={() => setIsSearchFocused(true)}
-                      onBlur={() => setIsSearchFocused(false)}
-                      className="w-64 pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-300 backdrop-blur-sm"
-                    />
-                    {isSearchFocused && (
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl blur"></div>
-                    )}
-                  </div>
-                </div>
-              
 
               {/* Profile */}
               <div className="relative profile-dropdown">
