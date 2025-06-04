@@ -17,13 +17,13 @@ import {
   Settings,
   FileText,
   Star,
-  Bell,
-  Wifi,
   Shield,
   Zap,
   Globe,
+  RotateCw
 } from "lucide-react"
 import api from "../api/axios"
+import { useRegisterSW } from 'virtual:pwa-register/react'
 
 export default function ResponsiveHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -34,6 +34,8 @@ export default function ResponsiveHeader() {
   const [notifications, setNotifications] = useState(3)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [isMobile, setIsMobile] = useState(false)
+  const { needRefresh, updateServiceWorker } = useRegisterSW()
+
 
   // Определяем разрешения для каждой роли
   const rolePermissions = {
@@ -211,7 +213,7 @@ export default function ResponsiveHeader() {
     <>
       {/* Main Header */}
       <header
-        className={`fixed ${isMobile ? "top-0" : "top-0"} left-0 right-0 z-40 transition-all duration-500 ${
+        className={`fixed ${isMobile ? "top-" : "top-0"} left-0 right-0 z-40 transition-all duration-500 ${
           isMobile
             ? "bg-white shadow-lg border-b border-gray-200"
             : "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
@@ -307,13 +309,16 @@ export default function ResponsiveHeader() {
             {/* Right Section */}
             <div className="flex items-center space-x-2">
               {/* Search - разный стиль для мобильных и десктопа */}
-              {isMobile ? (
-                <button
-                  className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors"
-                  aria-label="Поиск"
-                >
-                  <Search className="w-5 h-5 text-gray-600" />
-                </button>
+                {isMobile ? (
+                needRefresh ? (
+                  <button
+                    onClick={() => updateServiceWorker(true)}
+                    className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center hover:bg-green-200 transition-colors"
+                    aria-label="Обновить приложение"
+                  >
+                    <RotateCw className="w-5 h-5 text-green-700" />
+                  </button>
+                ) : null
               ) : (
                 <div className="hidden sm:block relative">
                   <div className={`relative transition-all duration-300 ${isSearchFocused ? "scale-105" : ""}`}>
