@@ -211,7 +211,7 @@ export default function ResponsiveHeader() {
     <>
       {/* Main Header */}
       <header
-        className={`fixed ${isMobile ? "top-6" : "top-0"} left-0 right-0 z-40 transition-all duration-500 ${
+        className={`fixed ${isMobile ? "top-0" : "top-0"} left-0 right-0 z-40 transition-all duration-500 ${
           isMobile
             ? "bg-white shadow-lg border-b border-gray-200"
             : "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
@@ -637,7 +637,7 @@ export default function ResponsiveHeader() {
 
       {/* Bottom Navigation - только для мобильных */}
       {isMobile && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-2 py-2 safe-area-pb mb-4">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-2 py-2 safe-area-pb">
           <div className="flex items-center justify-around">
             {navigationItems.slice(0, 4).map((item) => {
               const Icon = item.icon
@@ -646,7 +646,7 @@ export default function ResponsiveHeader() {
                 <NavLink
                   key={item.id}
                   to={item.path}
-                  className={`flex flex-col items-center justify-center p-2 rounded-xl min-w-[60px] transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center p-2 rounded-xl min-w-[60px] transition-all duration-200${
                     isActive ? "bg-blue-50" : "hover:bg-gray-50"
                   }`}
                 >
@@ -657,7 +657,7 @@ export default function ResponsiveHeader() {
                   >
                     <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-600"}`} />
                   </div>
-                  <span className={`text-xs font-medium ${isActive ? "text-blue-600" : "text-gray-600"}`}>
+                  <span className={`text-xs font-medium mb-4 ${isActive ? "text-blue-600" : "text-gray-600"}`}>
                     {item.label}
                   </span>
                 </NavLink>
