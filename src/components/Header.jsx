@@ -209,19 +209,6 @@ export default function ResponsiveHeader() {
 
   return (
     <>
-      {/* PWA Status Bar - только на мобильных */}
-      {isMobile && (
-        <div className="fixed top-0 left-0 right-0 z-50 h-6 bg-black text-white text-xs flex items-center justify-between px-4 safe-area-pt">
-          <div className="flex items-center space-x-2">
-            <span className="font-medium">{formatTime(time)}</span>
-            {!isOnline && <span className="text-red-400">Офлайн</span>}
-          </div>
-          <div className="flex items-center space-x-1">
-            <Wifi className={`w-3 h-3 ${isOnline ? "text-white" : "text-gray-500"}`} />
-          </div>
-        </div>
-      )}
-
       {/* Main Header */}
       <header
         className={`fixed ${isMobile ? "top-6" : "top-0"} left-0 right-0 z-40 transition-all duration-500 ${
@@ -344,27 +331,6 @@ export default function ResponsiveHeader() {
                   </div>
                 </div>
               )}
-
-              {/* Notifications */}
-              <button
-                className={`relative ${
-                  isMobile
-                    ? "w-10 h-10 bg-gray-100 rounded-xl hover:bg-gray-200"
-                    : "w-10 h-10 bg-gray-800/50 rounded-xl hover:bg-gray-700/70 border border-gray-700/50"
-                } flex items-center justify-center transition-colors`}
-                aria-label="Уведомления"
-              >
-                <Bell className={`w-5 h-5 ${isMobile ? "text-gray-600" : "text-gray-300"}`} />
-                {notifications > 0 && (
-                  <span
-                    className={`absolute -top-1 -right-1 w-5 h-5 ${
-                      isMobile ? "bg-red-500" : "bg-red-500"
-                    } text-white text-xs rounded-full flex items-center justify-center`}
-                  >
-                    {notifications}
-                  </span>
-                )}
-              </button>
 
               {/* Profile */}
               <div className="relative profile-dropdown">
@@ -594,26 +560,8 @@ export default function ResponsiveHeader() {
                   </button>
                 </div>
 
-                {/* Mobile Search */}
-                <div className={`p-4 ${isMobile ? "border-b border-gray-200" : "border-b border-gray-700/50"}`}>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Поиск..."
-                      className={`w-full pl-10 pr-4 py-3 ${
-                        isMobile ? "bg-gray-100 border border-gray-200" : "bg-gray-800/50 border border-gray-700/50"
-                      } rounded-xl text-sm ${
-                        isMobile ? "text-gray-800" : "text-white"
-                      } placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                        isMobile ? "focus:ring-blue-500/50" : "focus:ring-cyan-500/50"
-                      }`}
-                    />
-                  </div>
-                </div>
-
                 {/* Mobile Navigation */}
-                <nav className="flex-1 p-4 space-y-2">
+                <nav className="flex-1 p-4 space-y-2 mt-4">
                   {navigationItems.map((item) => {
                     const Icon = item.icon
                     const isActive = window.location.pathname === item.path
@@ -689,7 +637,7 @@ export default function ResponsiveHeader() {
 
       {/* Bottom Navigation - только для мобильных */}
       {isMobile && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-2 py-2 safe-area-pb">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-2 py-2 safe-area-pb mb-4">
           <div className="flex items-center justify-around">
             {navigationItems.slice(0, 4).map((item) => {
               const Icon = item.icon
@@ -721,7 +669,7 @@ export default function ResponsiveHeader() {
 
       {/* Spacers */}
       <div className={`${isMobile ? "h-22" : "h-16"}`}></div>
-      {isMobile && <div className="h-20"></div>}
+      {isMobile && <div className="h-1"></div>}
     </>
   )
 }
