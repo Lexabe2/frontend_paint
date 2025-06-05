@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useRef, useState } from "react"
 import { BrowserMultiFormatReader } from "@zxing/browser"
+import { NotFoundException } from "@zxing/library"
 import { Camera, X } from "lucide-react"
 
 const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
@@ -10,42 +11,38 @@ export default function ScannerInput({ value, onChange }) {
   const [error, setError] = useState("")
   const codeReaderRef = useRef(null)
 
-  useEffect(() => {
-    if (!scanning || !isMobile()) return
+  const startScan = async () => {
+    setError("")
+    setScanning(true)
 
     const codeReader = new BrowserMultiFormatReader()
     codeReaderRef.current = codeReader
 
-    const start = async () => {
-      try {
-        const devices = await BrowserMultiFormatReader.listVideoInputDevices()
-        const selectedDeviceId = devices[0]?.deviceId
+    try {
+      const devices = await BrowserMultiFormatReader.listVideoInputDevices()
+      const selectedDeviceId = devices[0]?.deviceId
 
-        if (!selectedDeviceId) throw new Error("Камера не найдена")
+      if (!selectedDeviceId) throw new Error("Камера не найдена")
 
-        await codeReader.decodeFromVideoDevice(
-          selectedDeviceId,
-          videoRef.current,
-          (result, err) => {
-            if (result) {
-              onChange(result.getText())
-              stopScan()
-            } else if (err && !(err instanceof NotFoundException)) {
-              console.error(err)
-              setError("Ошибка при сканировании")
-            }
+      await codeReader.decodeFromVideoDevice(
+        selectedDeviceId,
+        videoRef.current,
+        (result, err) => {
+          if (result) {
+            onChange(result.getText())
+            stopScan()
+          } else if (err && !(err instanceof NotFoundException)) {
+            console.error(err)
+            setError("Ошибка при сканировании")
           }
-        )
-      } catch (e) {
-        console.error("Ошибка камеры:", e)
-        setError("Не удалось получить доступ к камере")
-      }
+        }
+      )
+    } catch (e) {
+      console.error("Ошибка доступа к камере:", e)
+      setError("Не удалось получить доступ к камере. Убедитесь, что дали разрешение.")
+      stopScan()
     }
-
-    start()
-
-    return () => stopScan()
-  }, [scanning])
+  }
 
   const stopScan = () => {
     setScanning(false)
@@ -68,7 +65,7 @@ export default function ScannerInput({ value, onChange }) {
     <div className="space-y-2">
       {!scanning ? (
         <button
-          onClick={() => setScanning(true)}
+          onClick={startScan}
           className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
         >
           <Camera className="w-5 h-5" />
@@ -76,7 +73,13 @@ export default function ScannerInput({ value, onChange }) {
         </button>
       ) : (
         <div className="relative border rounded-lg overflow-hidden">
-          <video ref={videoRef} className="w-full h-auto" autoPlay muted playsInline />
+          <video
+            ref={videoRef}
+            className="w-full h-auto"
+            autoPlay
+            muted
+            playsInline
+          />
           <button
             onClick={stopScan}
             className="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-600 rounded-full p-1"
