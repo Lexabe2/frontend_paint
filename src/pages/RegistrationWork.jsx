@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Package, Calendar, Clock, Hash, Monitor, Target, ChevronDown, ChevronUp } from "lucide-react"
 import { useParams } from "react-router-dom"
 import api from "../api/axios"
+import ScannerInput from "../components/Skaner"
 
 const RegistrationWork = () => {
   const { id } = useParams()
@@ -11,6 +12,7 @@ const RegistrationWork = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [isExpanded, setIsExpanded] = useState(false)
+  const [code, setCode] = useState("")
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -162,9 +164,6 @@ const RegistrationWork = () => {
                 <h1 className="text-3xl font-bold text-gray-900 tracking-tight leading-tight">
                 Оприходование заявки
                 </h1>
-                <p className="text-gray-600 text-base">
-                Просмотр и обработка заявки на получение оборудования
-                </p>
             </div>
         </div>
 
@@ -174,35 +173,34 @@ const RegistrationWork = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <Package className="h-5 w-5 text-blue-600" />
-                Информация о заявке
+                Информация
               </h2>
-<div className="flex items-center gap-3 flex-wrap">
-  {/* Номер заявки */}
-  <div className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
-    <Hash className="w-4 h-4 text-gray-500" />
-    {request.request_id}
-  </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                {/* Номер заявки */}
+                <div className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
+                    <Hash className="w-4 h-4 text-gray-500" />
+                    {request.request_id}
+                </div>
 
-  {/* Проект */}
-  <div className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
-    <Target className="w-4 h-4 text-gray-500" />
-    {request.project}
-  </div>
+                {/* Проект */}
+                <div className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
+                    <Target className="w-4 h-4 text-gray-500" />
+                    {request.project}
+                </div>
 
-  {/* Кнопка раскрытия */}
-  <button
-    onClick={() => setIsExpanded((prev) => !prev)}
-    className="p-2 rounded-full hover:bg-gray-100 transition"
-    title={isExpanded ? "Свернуть" : "Развернуть"}
-  >
-    {isExpanded ? (
-      <ChevronUp className="w-5 h-5 text-gray-600" />
-    ) : (
-      <ChevronDown className="w-5 h-5 text-gray-600" />
-    )}
-  </button>
-</div>
-
+                {/* Кнопка раскрытия */}
+                <button
+                    onClick={() => setIsExpanded((prev) => !prev)}
+                    className="p-2 rounded-full hover:bg-gray-100 transition"
+                    title={isExpanded ? "Свернуть" : "Развернуть"}
+                >
+                    {isExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                    )}
+                </button>
+                </div>
             </div>
           </div>
           {isExpanded && (
@@ -269,15 +267,7 @@ const RegistrationWork = () => {
           )}
         </div>
         <div className="bg-gray-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-200">
-          <div className="space-y-3">
-            <div className="mx-auto w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                  <Package className="h-6 w-6 text-gray-500" />
-            </div>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Форма оприходования</h3>
-                  <p className="text-gray-500 mt-1">Здесь будет форма оприходования устройства</p>
-                </div>
-            </div>
+            <ScannerInput value={code} onChange={setCode} />
         </div>
       </div>
     </div>

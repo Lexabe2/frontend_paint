@@ -1,44 +1,92 @@
-import React, { useEffect, useRef, useState } from "react";
-import { BrowserMultiFormatReader } from "@zxing/browser";
+import React, { useEffect, useRef, useState } from "react"
+import { BrowserMultiFormatReader } from "@zxing/browser"
+import { Camera, X } from "lucide-react"
 
-export default function ZXingScanner() {
-  const videoRef = useRef(null);
-  const [result, setResult] = useState("");
-  const codeReaderRef = useRef(null); // храним инстанс
+const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+export default function ScannerInput({ value, onChange }) {
+  const videoRef = useRef(null)
+  const [scanning, setScanning] = useState(false)
+  const [error, setError] = useState("")
+  const codeReaderRef = useRef(null)
 
   useEffect(() => {
-    const codeReader = new BrowserMultiFormatReader();
-    codeReaderRef.current = codeReader;
+    if (!scanning || !isMobile()) return
 
-    codeReader
-      .decodeFromVideoDevice(null, videoRef.current, (res, err) => {
-        if (res) {
-          setResult(res.getText());
-          codeReader.reset(); // вернёмся к reset, работает в некоторых версиях
-        }
-      })
-      .catch((err) => {
-        console.error("Ошибка доступа к камере:", err);
-      });
+    const codeReader = new BrowserMultiFormatReader()
+    codeReaderRef.current = codeReader
 
-    return () => {
+    const start = async () => {
       try {
-        codeReader.reset(); // очистка на размонтирование
+        const devices = await BrowserMultiFormatReader.listVideoInputDevices()
+        const selectedDeviceId = devices[0]?.deviceId
+
+        if (!selectedDeviceId) throw new Error("Камера не найдена")
+
+        await codeReader.decodeFromVideoDevice(
+          selectedDeviceId,
+          videoRef.current,
+          (result, err) => {
+            if (result) {
+              onChange(result.getText())
+              stopScan()
+            } else if (err && !(err instanceof NotFoundException)) {
+              console.error(err)
+              setError("Ошибка при сканировании")
+            }
+          }
+        )
       } catch (e) {
-        console.warn("Не удалось остановить сканер:", e);
+        console.error("Ошибка камеры:", e)
+        setError("Не удалось получить доступ к камере")
       }
-    };
-  }, []);
+    }
+
+    start()
+
+    return () => stopScan()
+  }, [scanning])
+
+  const stopScan = () => {
+    setScanning(false)
+    codeReaderRef.current?.reset()
+  }
+
+  if (!isMobile()) {
+    return (
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Введите или отсканируйте код"
+        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    )
+  }
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Сканер QR / Штрихкода</h2>
-      <video ref={videoRef} className="w-full max-w-md h-80 bg-black rounded" />
-      {result && (
-        <div className="mt-4 p-2 bg-green-100 text-green-800 rounded shadow">
-          📦 Результат: {result}
+    <div className="space-y-2">
+      {!scanning ? (
+        <button
+          onClick={() => setScanning(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+        >
+          <Camera className="w-5 h-5" />
+          Сканировать код
+        </button>
+      ) : (
+        <div className="relative border rounded-lg overflow-hidden">
+          <video ref={videoRef} className="w-full h-auto" autoPlay muted playsInline />
+          <button
+            onClick={stopScan}
+            className="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-600 rounded-full p-1"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
+      {value && <p className="text-sm text-gray-700">📦 Отсканировано: <strong>{value}</strong></p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
-  );
+  )
 }
