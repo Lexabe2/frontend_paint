@@ -116,7 +116,7 @@ export default function ScannerInput({ value, onChange }) {
           className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
         >
           <Camera className="w-5 h-5" />
-          Сканировать код 1
+          Сканировать код 12
         </button>
       ) : (
         <div className="relative border rounded-lg overflow-hidden">
