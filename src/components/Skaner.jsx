@@ -12,6 +12,7 @@ export default function ScannerInput({ value, onChange }) {
   const codeReaderRef = useRef(null)
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState("")
+  const [scannedText, setScannedText] = useState("")
 
   useEffect(() => {
     if (!scanning || !isMobile()) return
@@ -22,14 +23,20 @@ export default function ScannerInput({ value, onChange }) {
 
       try {
         setError("")
+        setScannedText("")
 
-        if (window.location.protocol !== "https:" && window.location.hostname !== "localhost") {
+        if (
+          window.location.protocol !== "https:" &&
+          window.location.hostname !== "localhost"
+        ) {
           throw new Error("Доступ к камере возможен только через HTTPS")
         }
 
-        // iOS Safari (в т.ч. PWA) требует явного вызова getUserMedia
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-        stream.getTracks().forEach(track => track.stop()) // остановка предварительного запроса
+        // Явный запрос к задней камере (особенно важно для iOS)
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } }
+        })
+        stream.getTracks().forEach(track => track.stop())
 
         const devices = await BrowserMultiFormatReader.listVideoInputDevices()
         const deviceId = devices?.[0]?.deviceId
@@ -40,7 +47,9 @@ export default function ScannerInput({ value, onChange }) {
           videoRef.current,
           (result, err) => {
             if (result) {
-              onChange(result.getText())
+              const text = result.getText()
+              setScannedText(text)
+              onChange(text)
               stopScan()
             } else if (err && !(err instanceof NotFoundException)) {
               console.error("Ошибка сканирования:", err)
@@ -108,8 +117,17 @@ export default function ScannerInput({ value, onChange }) {
         </div>
       )}
 
-      {value && <p className="text-sm text-gray-700">📦 Отсканировано: <strong>{value}</strong></p>}
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {scannedText && (
+        <p className="text-sm text-green-600">
+          ✅ Отсканировано: <strong>{scannedText}</strong>
+        </p>
+      )}
+
+      {error && (
+        <p className="text-sm text-red-500">
+          ⚠️ {error}
+        </p>
+      )}
     </div>
   )
 }
