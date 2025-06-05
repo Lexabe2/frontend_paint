@@ -3,24 +3,39 @@
 import React, { useEffect, useRef, useState } from "react"
 import { BrowserMultiFormatReader } from "@zxing/browser"
 import { NotFoundException } from "@zxing/library"
-import { Camera, X } from "lucide-react"
-
-const isMobile = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+import { Camera, X, Repeat } from "lucide-react"
 
 export default function ScannerInput({ value, onChange }) {
   const videoRef = useRef(null)
   const codeReaderRef = useRef(null)
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState("")
+  const [devices, setDevices] = useState([])
+  const [deviceIndex, setDeviceIndex] = useState(0)
   const [scannedText, setScannedText] = useState("")
 
   useEffect(() => {
-    if (!scanning || !isMobile()) return
+    const loadDevices = async () => {
+      try {
+        const availableDevices = await BrowserMultiFormatReader.listVideoInputDevices()
+        setDevices(availableDevices)
+      } catch (e) {
+        setError("Не удалось получить список камер")
+        console.error(e)
+      }
+    }
+    loadDevices()
+  }, [])
+
+  useEffect(() => {
+    if (!scanning || devices.length === 0) return
+
+    const codeReader = new BrowserMultiFormatReader()
+    codeReaderRef.current = codeReader
+
+    const selectedDevice = devices[deviceIndex]
 
     const startScan = async () => {
-      const codeReader = new BrowserMultiFormatReader()
-      codeReaderRef.current = codeReader
-
       try {
         setError("")
         setScannedText("")
@@ -32,18 +47,16 @@ export default function ScannerInput({ value, onChange }) {
           throw new Error("Доступ к камере возможен только через HTTPS")
         }
 
-        // Явный запрос к задней камере (особенно важно для iOS)
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: "environment" } }
-        })
-        stream.getTracks().forEach(track => track.stop())
+        // Запрашиваем доступ к видео, чтобы Safari показал prompt
+        const constraints = selectedDevice?.deviceId
+          ? { video: { deviceId: { exact: selectedDevice.deviceId } } }
+          : { video: true }
 
-        const devices = await BrowserMultiFormatReader.listVideoInputDevices()
-        const deviceId = devices?.[0]?.deviceId
-        if (!deviceId) throw new Error("Камера не найдена")
+        const stream = await navigator.mediaDevices.getUserMedia(constraints)
+        stream.getTracks().forEach(track => track.stop()) // только для запроса доступа
 
         await codeReader.decodeFromVideoDevice(
-          deviceId,
+          selectedDevice?.deviceId ?? null,
           videoRef.current,
           (result, err) => {
             if (result) {
@@ -59,34 +72,40 @@ export default function ScannerInput({ value, onChange }) {
         )
       } catch (e) {
         console.error("Ошибка камеры:", e)
-        if (e.name === "NotAllowedError" || e.name === "SecurityError") {
-          setError("Разрешите доступ к камере в настройках Safari")
-        } else {
-          setError(e.message || "Не удалось получить доступ к камере")
-        }
+        setError(
+          e.name === "NotAllowedError"
+            ? "Разрешите доступ к камере в настройках браузера"
+            : e.message || "Не удалось получить доступ к камере"
+        )
         stopScan()
       }
     }
 
     startScan()
+
     return () => stopScan()
-  }, [scanning])
+  }, [scanning, deviceIndex, devices])
 
   const stopScan = () => {
     setScanning(false)
-    codeReaderRef.current?.reset()
+    const codeReader = codeReaderRef.current
+    try {
+      codeReader?.stopContinuousDecode()
+    } catch (e) {
+      console.warn("Ошибка остановки сканера", e)
+    }
+    const video = videoRef.current
+    if (video && video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop())
+      video.srcObject = null
+    }
   }
 
-  if (!isMobile()) {
-    return (
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Введите или отсканируйте код"
-        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-    )
+  const switchCamera = () => {
+    const nextIndex = (deviceIndex + 1) % devices.length
+    setDeviceIndex(nextIndex)
+    setScanning(false)
+    setTimeout(() => setScanning(true), 300)
   }
 
   return (
@@ -108,12 +127,22 @@ export default function ScannerInput({ value, onChange }) {
             muted
             playsInline
           />
-          <button
-            onClick={stopScan}
-            className="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-600 rounded-full p-1"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="absolute top-2 right-2 flex gap-2">
+            {devices.length > 1 && (
+              <button
+                onClick={switchCamera}
+                className="bg-white/80 hover:bg-white text-gray-600 rounded-full p-1"
+              >
+                <Repeat className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={stopScan}
+              className="bg-white/80 hover:bg-white text-gray-600 rounded-full p-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -122,11 +151,8 @@ export default function ScannerInput({ value, onChange }) {
           ✅ Отсканировано: <strong>{scannedText}</strong>
         </p>
       )}
-
       {error && (
-        <p className="text-sm text-red-500">
-          ⚠️ {error}
-        </p>
+        <p className="text-sm text-red-500">⚠️ {error}</p>
       )}
     </div>
   )
