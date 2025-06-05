@@ -27,6 +27,7 @@ export default function LoginStep({ username, password, setUsername, setPassword
 
     // Имитация запроса к серверу
     try {
+      localStorage.removeItem("access_token");
       await new Promise((resolve) => setTimeout(resolve, 1000))
       onLogin()
     } catch (error) {
