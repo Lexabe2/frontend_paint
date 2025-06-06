@@ -11,7 +11,12 @@ export default defineConfig(({ mode }) => {
     plugins: [
       tailwindcss(),
       react(),
-      visualizer({ open: true }),
+      visualizer({
+        open: true,             // автоматически откроет браузер
+        filename: 'stats.html', // название html-файла
+        gzipSize: true,         // показывает размер после gzip
+        brotliSize: true        // и после brotli (ещё полезнее)
+      }),
       VitePWA({
         registerType: 'autoUpdate',
         workbox: {
