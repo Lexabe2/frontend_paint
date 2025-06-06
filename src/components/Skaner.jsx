@@ -1,159 +1,172 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { BrowserMultiFormatReader } from "@zxing/browser"
-import { NotFoundException } from "@zxing/library"
-import { Camera, X, Repeat } from "lucide-react"
+import { Camera, CameraOff, Scan } from 'lucide-react'
 
-export default function ScannerInput({ value, onChange }) {
+export default function ScannerInput({ onScan, onError }) {
   const videoRef = useRef(null)
-  const codeReaderRef = useRef(null)
   const [scanning, setScanning] = useState(false)
-  const [error, setError] = useState("")
-  const [devices, setDevices] = useState([])
-  const [deviceIndex, setDeviceIndex] = useState(0)
-  const [scannedText, setScannedText] = useState("")
+  const [isActive, setIsActive] = useState(false)
+  const codeReaderRef = useRef(null)
+  const controlsRef = useRef(null)
+  const streamRef = useRef(null)
 
   useEffect(() => {
-    const loadDevices = async () => {
-      try {
-        const availableDevices = await BrowserMultiFormatReader.listVideoInputDevices()
-        setDevices(availableDevices)
-      } catch (e) {
-        setError("Не удалось получить список камер")
-        console.error(e)
-      }
+    codeReaderRef.current = new BrowserMultiFormatReader()
+
+    return () => {
+      stopScanning()
     }
-    loadDevices()
   }, [])
 
-  useEffect(() => {
-    if (!scanning || devices.length === 0) return
-
-    const codeReader = new BrowserMultiFormatReader()
-    codeReaderRef.current = codeReader
-
-    const selectedDevice = devices[deviceIndex]
-
-    const startScan = async () => {
-      try {
-        setError("")
-        setScannedText("")
-
-        if (
-          window.location.protocol !== "https:" &&
-          window.location.hostname !== "localhost"
-        ) {
-          throw new Error("Доступ к камере возможен только через HTTPS")
-        }
-
-        // Запрашиваем доступ к видео, чтобы Safari показал prompt
-        const constraints = selectedDevice?.deviceId
-          ? { video: { deviceId: { exact: selectedDevice.deviceId } } }
-          : { video: true }
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints)
-        stream.getTracks().forEach(track => track.stop()) // только для запроса доступа
-
-        await codeReader.decodeFromVideoDevice(
-          selectedDevice?.deviceId ?? null,
-          videoRef.current,
-          (result, err) => {
-            if (result) {
-              const text = result.getText()
-              setScannedText(text)
-              onChange(text)
-              stopScan()
-            } else if (err && !(err instanceof NotFoundException)) {
-              console.error("Ошибка сканирования:", err)
-              setError("Ошибка при сканировании")
-            }
-          }
-        )
-      } catch (e) {
-        console.error("Ошибка камеры:", e)
-        setError(
-          e.name === "NotAllowedError"
-            ? "Разрешите доступ к камере в настройках браузера"
-            : e.message || "Не удалось получить доступ к камере"
-        )
-        stopScan()
-      }
-    }
-
-    startScan()
-
-    return () => stopScan()
-  }, [scanning, deviceIndex, devices])
-
-  const stopScan = () => {
-    setScanning(false)
-    const codeReader = codeReaderRef.current
+  const startScan = async () => {
     try {
-      codeReader?.stopContinuousDecode()
-    } catch (e) {
-      console.warn("Ошибка остановки сканера", e)
-    }
-    const video = videoRef.current
-    if (video && video.srcObject) {
-      video.srcObject.getTracks().forEach(track => track.stop())
-      video.srcObject = null
+      setScanning(true)
+      const controls = await codeReaderRef.current.decodeFromVideoDevice(null, videoRef.current, (result, error) => {
+        if (result) {
+          setIsActive(true)
+          onScan?.(result.getText())
+
+          setTimeout(() => {
+            setIsActive(false)
+            stopScanning()
+          }, 800)
+        } else if (error && error.name !== "NotFoundException") {
+          onError?.(error)
+        }
+      })
+
+      controlsRef.current = controls
+
+      if (videoRef.current && videoRef.current.srcObject) {
+        streamRef.current = videoRef.current.srcObject
+      }
+    } catch (err) {
+      onError?.(err)
+      setScanning(false)
     }
   }
 
-  const switchCamera = () => {
-    const nextIndex = (deviceIndex + 1) % devices.length
-    setDeviceIndex(nextIndex)
+  const stopScanning = () => {
+    if (controlsRef.current) {
+      controlsRef.current.stop()
+      controlsRef.current = null
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        track.stop()
+      })
+      streamRef.current = null
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+
     setScanning(false)
-    setTimeout(() => setScanning(true), 300)
   }
 
   return (
-    <div className="space-y-2">
-      {!scanning ? (
-        <button
-          onClick={() => setScanning(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
-        >
-          <Camera className="w-5 h-5" />
-          Сканировать код 1
-        </button>
-      ) : (
-        <div className="relative border rounded-lg overflow-hidden">
-          <video
-            ref={videoRef}
-            className="w-full h-auto"
-            autoPlay
-            muted
-            playsInline
-          />
-          <div className="absolute top-2 right-2 flex gap-2">
-            {devices.length > 1 && (
-              <button
-                onClick={switchCamera}
-                className="bg-white/80 hover:bg-white text-gray-600 rounded-full p-1"
-              >
-                <Repeat className="w-4 h-4" />
-              </button>
-            )}
-            <button
-              onClick={stopScan}
-              className="bg-white/80 hover:bg-white text-gray-600 rounded-full p-1"
+    <div className="space-y-3">
+      {/* Компактная зона сканирования */}
+      <div className="relative bg-black rounded-lg overflow-hidden">
+        <video ref={videoRef} muted autoPlay playsInline className="w-full h-48 object-cover" />
+
+        {/* Рамка сканирования */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className={`relative w-32 h-32 transition-all duration-300 ${isActive ? "scale-110" : "scale-100"}`}>
+            <div
+              className={`absolute inset-0 border-2 rounded-lg transition-colors duration-300 ${
+                isActive ? "border-green-400" : scanning ? "border-white" : "border-gray-400"
+              }`}
             >
-              <X className="w-4 h-4" />
-            </button>
+              {/* Углы рамки */}
+              <div
+                className={`absolute -top-1 -left-1 w-4 h-4 border-l-3 border-t-3 rounded-tl-lg transition-colors duration-300 ${
+                  isActive ? "border-green-400" : scanning ? "border-white" : "border-gray-400"
+                }`}
+              ></div>
+              <div
+                className={`absolute -top-1 -right-1 w-4 h-4 border-r-3 border-t-3 rounded-tr-lg transition-colors duration-300 ${
+                  isActive ? "border-green-400" : scanning ? "border-white" : "border-gray-400"
+                }`}
+              ></div>
+              <div
+                className={`absolute -bottom-1 -left-1 w-4 h-4 border-l-3 border-b-3 rounded-bl-lg transition-colors duration-300 ${
+                  isActive ? "border-green-400" : scanning ? "border-white" : "border-gray-400"
+                }`}
+              ></div>
+              <div
+                className={`absolute -bottom-1 -right-1 w-4 h-4 border-r-3 border-b-3 rounded-br-lg transition-colors duration-300 ${
+                  isActive ? "border-green-400" : scanning ? "border-white" : "border-gray-400"
+                }`}
+              ></div>
+            </div>
+
+            {/* Анимированная линия сканирования */}
+            {scanning && !isActive && (
+              <div className="absolute inset-x-0 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-green-400 to-transparent">
+                <div className="h-full bg-green-400 animate-pulse"></div>
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      {scannedText && (
-        <p className="text-sm text-green-600">
-          ✅ Отсканировано: <strong>{scannedText}</strong>
-        </p>
-      )}
-      {error && (
-        <p className="text-sm text-red-500">⚠️ {error}</p>
-      )}
+        {/* Индикатор успешного сканирования */}
+        {isActive && (
+          <div className="absolute inset-0 bg-green-400 bg-opacity-20 flex items-center justify-center">
+            <div className="bg-green-500 text-white p-2 rounded-full animate-pulse">
+              <Scan className="w-5 h-5" />
+            </div>
+          </div>
+        )}
+
+        {/* Оверлей когда камера не активна */}
+        {!scanning && (
+          <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center">
+            <div className="text-center text-white">
+              <Scan className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm font-medium">Нажмите для сканирования</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Компактное управление */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm">
+          {scanning ? (
+            <>
+              <Camera className="w-4 h-4 text-green-600" />
+              <span className="text-green-600 font-medium">Активна</span>
+            </>
+          ) : (
+            <>
+              <CameraOff className="w-4 h-4 text-gray-500" />
+              <span className="text-gray-500">Готов</span>
+            </>
+          )}
+        </div>
+
+        {scanning ? (
+          <button
+            onClick={stopScanning}
+            className="px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+          >
+            Стоп
+          </button>
+        ) : (
+          <button
+            onClick={startScan}
+            className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center gap-2"
+          >
+            <Scan className="w-4 h-4" />
+            Сканировать
+          </button>
+        )}
+      </div>
     </div>
   )
 }

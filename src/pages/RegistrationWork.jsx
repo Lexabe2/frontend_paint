@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Package, Calendar, Clock, Hash, Monitor, Target, ChevronDown, ChevronUp } from "lucide-react"
+import { Package, Hash, ChevronDown, ChevronUp, Send, Trash2, Plus } from "lucide-react"
 import { useParams } from "react-router-dom"
 import api from "../api/axios"
 import ScannerInput from "../components/Skaner"
+import Toast from "../components/toast"
 
 const RegistrationWork = () => {
   const { id } = useParams()
@@ -12,7 +13,38 @@ const RegistrationWork = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [isExpanded, setIsExpanded] = useState(false)
-  const [code, setCode] = useState("")
+  const [scannedDevices, setScannedDevices] = useState([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Toast states
+  const [toast, setToast] = useState(null)
+
+  const storageKey = `scanned_devices_${id}`
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type })
+  }
+
+  const hideToast = () => {
+    setToast(null)
+  }
+
+  useEffect(() => {
+    const savedDevices = localStorage.getItem(storageKey)
+    if (savedDevices) {
+      try {
+        setScannedDevices(JSON.parse(savedDevices))
+      } catch (e) {
+        console.error("Ошибка при загрузке сохраненных данных:", e)
+      }
+    }
+  }, [storageKey])
+
+  useEffect(() => {
+    if (scannedDevices.length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify(scannedDevices))
+    }
+  }, [scannedDevices, storageKey])
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -35,67 +67,77 @@ const RegistrationWork = () => {
     }
   }, [id])
 
+  const handleNewScan = (code) => {
+    if (!code.trim()) return
+
+    const isDuplicate = scannedDevices.some((device) => device.code === code)
+    if (isDuplicate) {
+      showToast("Это устройство уже было отсканировано!", "error")
+      return
+    }
+
+    const newDevice = {
+      id: Date.now(),
+      code: code.trim(),
+      scannedAt: new Date().toISOString(),
+      requestId: id,
+    }
+
+    setScannedDevices((prev) => [...prev, newDevice])
+    showToast("Устройство успешно отсканировано!")
+  }
+
+  const removeDevice = (deviceId) => {
+    setScannedDevices((prev) => prev.filter((device) => device.id !== deviceId))
+    showToast("Устройство удалено")
+  }
+
+  const clearAllDevices = () => {
+    if (window.confirm("Очистить весь список?")) {
+      setScannedDevices([])
+      localStorage.removeItem(storageKey)
+      showToast("Список очищен")
+    }
+  }
+
+  const submitDevices = async () => {
+    if (scannedDevices.length === 0) {
+      showToast("Нет устройств для отправки!", "error")
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const payload = {
+        requestId: id,
+        devices: scannedDevices.map((device) => ({
+          code: device.code,
+          scannedAt: device.scannedAt,
+        })),
+      }
+
+      await api.post(`/requests-work/${id}/register-devices/`, payload)
+
+      showToast("Данные успешно отправлены!")
+      setScannedDevices([])
+      localStorage.removeItem(storageKey)
+    } catch (err) {
+      console.error("Ошибка при отправке данных:", err)
+      showToast(err.response?.data?.message || "Ошибка отправки данных", "error")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="space-y-6">
-          {/* Header Skeleton */}
-          <div className="space-y-2">
-            <div className="h-8 bg-gray-200 rounded-lg w-80 animate-pulse"></div>
-            <div className="h-4 bg-gray-200 rounded w-96 animate-pulse"></div>
-          </div>
-
-          {/* Main Content Skeleton */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="p-6 pb-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-5 w-5 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
-                </div>
-                <div className="h-6 bg-gray-200 rounded-full w-20 animate-pulse"></div>
-              </div>
-            </div>
-            <div className="p-6 space-y-6">
-              {/* Request Details Grid Skeleton */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="h-5 w-5 bg-gray-200 rounded mt-0.5 animate-pulse"></div>
-                      <div className="space-y-2 flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
-                        <div className="h-5 bg-gray-200 rounded w-full animate-pulse"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="h-5 w-5 bg-gray-200 rounded mt-0.5 animate-pulse"></div>
-                      <div className="space-y-2 flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
-                        <div className="h-5 bg-gray-200 rounded w-full animate-pulse"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200"></div>
-
-              {/* Form Placeholder Skeleton */}
-              <div className="bg-gray-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-200">
-                <div className="space-y-3">
-                  <div className="mx-auto w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
-                  <div className="space-y-2">
-                    <div className="h-5 bg-gray-200 rounded w-48 mx-auto animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded w-64 mx-auto animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <div className="container mx-auto px-3 py-4 max-w-2xl">
+        <div className="space-y-4">
+          <div className="h-6 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+          <div className="bg-white rounded-lg border p-4 space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+            <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -104,19 +146,11 @@ const RegistrationWork = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-full max-w-md bg-red-50 border border-red-200 rounded-lg">
-          <div className="p-6">
-            <div className="flex flex-col items-center gap-4 text-center">
-              <div className="rounded-full bg-red-100 p-3">
-                <Package className="h-6 w-6 text-red-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-red-900">Ошибка загрузки</h3>
-                <p className="text-sm text-red-700 mt-1">{error}</p>
-              </div>
-            </div>
-          </div>
+      <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="text-center">
+          <Package className="h-12 w-12 text-red-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-red-900 mb-1">Ошибка загрузки</h3>
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       </div>
     )
@@ -124,152 +158,138 @@ const RegistrationWork = () => {
 
   if (!request) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-full max-w-md bg-white border border-gray-200 rounded-lg">
-          <div className="p-6">
-            <div className="flex flex-col items-center gap-4 text-center">
-              <div className="rounded-full bg-gray-100 p-3">
-                <Package className="h-6 w-6 text-gray-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Заявка не найдена</h3>
-                <p className="text-sm text-gray-500 mt-1">Запрашиваемая заявка не существует или была удалена</p>
-              </div>
-            </div>
-          </div>
+      <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="text-center">
+          <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+          <h3 className="font-semibold text-gray-900 mb-1">Заявка не найдена</h3>
+          <p className="text-sm text-gray-500">Запрашиваемая заявка не существует</p>
         </div>
       </div>
     )
   }
 
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case "в обработке":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "завершено":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "отклонено":
-        return "bg-red-100 text-red-800 border-red-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="rounded-2xl bg-gray-50 p-6 shadow-sm border border-gray-200">
-            <div className="space-y-3">
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight leading-tight">
-                Оприходование заявки
-                </h1>
+    <div className="container mx-auto px-3 py-4 max-w-2xl pb-20">
+      {/* Toast */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+
+      <div className="space-y-4">
+        {/* Компактный Header */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Оприходование</h1>
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2 text-blue-700">
+              <Hash className="w-4 h-4" />
+              {request.request_id}
             </div>
+            {scannedDevices.length > 0 && (
+              <div className="text-blue-800 font-medium">
+                {scannedDevices.length}/{request.quantity}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Main Content */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div className="p-6 pb-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Package className="h-5 w-5 text-blue-600" />
-                Информация
-              </h2>
-                <div className="flex items-center gap-3 flex-wrap">
-                {/* Номер заявки */}
-                <div className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
-                    <Hash className="w-4 h-4 text-gray-500" />
-                    {request.request_id}
-                </div>
-
-                {/* Проект */}
-                <div className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
-                    <Target className="w-4 h-4 text-gray-500" />
-                    {request.project}
-                </div>
-
-                {/* Кнопка раскрытия */}
-                <button
-                    onClick={() => setIsExpanded((prev) => !prev)}
-                    className="p-2 rounded-full hover:bg-gray-100 transition"
-                    title={isExpanded ? "Свернуть" : "Развернуть"}
-                >
-                    {isExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-gray-600" />
-                    ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-600" />
-                    )}
-                </button>
-                </div>
-            </div>
+        {/* Компактная информация о заявке */}
+        <div className="bg-white rounded-lg border">
+          <div className="p-3 border-b flex items-center justify-between">
+            <h2 className="font-semibold flex items-center gap-2">
+              <Package className="h-4 w-4 text-blue-600" />
+              Заявка
+            </h2>
+            <button onClick={() => setIsExpanded(!isExpanded)} className="p-1 rounded hover:bg-gray-100">
+              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
           </div>
+
           {isExpanded && (
-          <div className="p-6 space-y-6">
-            {/* Request Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Hash className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Номер заявки</p>
-                    <p className="font-semibold text-gray-900">{request.request_id}</p>
-                  </div>
+            <div className="p-3 space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-gray-500 mb-1">Проект</p>
+                  <p className="font-medium">{request.project}</p>
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <Target className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Проект</p>
-                    <p className="font-semibold text-gray-900">{request.project}</p>
-                  </div>
+                <div>
+                  <p className="text-gray-500 mb-1">Устройство</p>
+                  <p className="font-medium">{request.device}</p>
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <Monitor className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Устройство</p>
-                    <p className="font-semibold text-gray-900">{request.device}</p>
-                  </div>
+                <div>
+                  <p className="text-gray-500 mb-1">Количество</p>
+                  <p className="font-medium">{request.quantity} шт.</p>
                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Package className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Количество</p>
-                    <p className="font-semibold text-gray-900">{request.quantity} шт.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Дата получения</p>
-                    <p className="font-semibold text-gray-900">
-                      {new Date(request.date_received).toLocaleDateString("ru-RU")}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Дедлайн</p>
-                    <p className="font-semibold text-gray-900">
-                      {new Date(request.deadline).toLocaleDateString("ru-RU")}
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-gray-500 mb-1">Дедлайн</p>
+                  <p className="font-medium">{new Date(request.deadline).toLocaleDateString("ru-RU")}</p>
                 </div>
               </div>
             </div>
-          </div>
           )}
         </div>
-        <div className="bg-gray-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-200">
-            <ScannerInput value={code} onChange={setCode} />
+
+        {/* Компактный сканер */}
+        <div className="bg-white rounded-lg border p-3">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Plus className="w-4 h-4 text-green-600" />
+            Сканирование
+          </h3>
+          <ScannerInput onScan={handleNewScan} />
         </div>
+
+        {/* Компактный список устройств */}
+        {scannedDevices.length > 0 && (
+          <div className="bg-white rounded-lg border">
+            <div className="p-3 border-b flex items-center justify-between">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Package className="w-4 h-4 text-blue-600" />
+                Отсканировано ({scannedDevices.length})
+              </h3>
+              <button
+                onClick={clearAllDevices}
+                className="text-red-600 text-sm flex items-center gap-1 hover:bg-red-50 px-2 py-1 rounded"
+              >
+                <Trash2 className="w-3 h-3" />
+                Очистить
+              </button>
+            </div>
+            <div className="p-3">
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {scannedDevices.map((device, index) => (
+                  <div key={device.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium">{device.code}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(device.scannedAt).toLocaleTimeString("ru-RU")}
+                        </p>
+                      </div>
+                    </div>
+                    <button onClick={() => removeDevice(device.id)} className="text-red-500 hover:text-red-700 p-1">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Фиксированная кнопка отправки */}
+      {scannedDevices.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg">
+          <button
+            onClick={submitDevices}
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+          >
+            <Send className="w-4 h-4" />
+            {isSubmitting ? "Отправка..." : `Отправить (${scannedDevices.length})`}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
