@@ -1,11 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Package, Hash, ChevronDown, ChevronUp, Send, Trash2, Plus } from "lucide-react"
+import { Package, ChevronDown, ChevronUp, Trash2, Plus, Sparkles, Send, CheckCircle, ArrowRight } from "lucide-react"
 import { useParams } from "react-router-dom"
 import api from "../api/axios"
 import ScannerInput from "../components/Skaner"
 import Toast from "../components/toast"
+import { useNavigate } from "react-router-dom"
 
 const RegistrationWork = () => {
   const { id } = useParams()
@@ -14,7 +15,10 @@ const RegistrationWork = () => {
   const [error, setError] = useState("")
   const [isExpanded, setIsExpanded] = useState(false)
   const [scannedDevices, setScannedDevices] = useState([])
+  const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
+  const [redirectProgress, setRedirectProgress] = useState(0)
 
   // Toast states
   const [toast, setToast] = useState(null)
@@ -72,7 +76,7 @@ const RegistrationWork = () => {
 
     const isDuplicate = scannedDevices.some((device) => device.code === code)
     if (isDuplicate) {
-      showToast("Это устройство уже было отсканировано!", "error")
+      showToast("Это устройство уже было добавлено!", "error")
       return
     }
 
@@ -84,7 +88,7 @@ const RegistrationWork = () => {
     }
 
     setScannedDevices((prev) => [...prev, newDevice])
-    showToast("Устройство успешно отсканировано!")
+    showToast("Устройство успешно добавлено!")
   }
 
   const removeDevice = (deviceId) => {
@@ -93,11 +97,32 @@ const RegistrationWork = () => {
   }
 
   const clearAllDevices = () => {
-    if (window.confirm("Очистить весь список?")) {
+    if (window.confirm("Очистить весь список устройств?")) {
       setScannedDevices([])
       localStorage.removeItem(storageKey)
       showToast("Список очищен")
     }
+  }
+
+  const animatedRedirect = () => {
+    setIsRedirecting(true)
+
+    // Анимация прогресса
+    const duration = 2000 // 2 секунды
+    const interval = 50
+    const steps = duration / interval
+    let currentStep = 0
+
+    const progressInterval = setInterval(() => {
+      currentStep++
+      const progress = (currentStep / steps) * 100
+      setRedirectProgress(progress)
+
+      if (currentStep >= steps) {
+        clearInterval(progressInterval)
+        navigate("/registration")
+      }
+    }, interval)
   }
 
   const submitDevices = async () => {
@@ -112,16 +137,19 @@ const RegistrationWork = () => {
       const payload = {
         requestId: id,
         devices: scannedDevices.map((device) => ({
-          code: device.code,
-          scannedAt: device.scannedAt,
+          atm: device.code,
         })),
       }
 
-      await api.post(`/requests-work/${id}/register-devices/`, payload)
-
+      await api.post(`/atm-add/${id}/register-devices/`, payload)
       showToast("Данные успешно отправлены!")
       setScannedDevices([])
       localStorage.removeItem(storageKey)
+
+      // Запускаем анимированный редирект
+      setTimeout(() => {
+        animatedRedirect()
+      }, 1000)
     } catch (err) {
       console.error("Ошибка при отправке данных:", err)
       showToast(err.response?.data?.message || "Ошибка отправки данных", "error")
@@ -130,14 +158,19 @@ const RegistrationWork = () => {
     }
   }
 
+  const getProgressPercentage = () => {
+    if (!request) return 0
+    return Math.min(Math.round((scannedDevices.length / request.quantity) * 100), 100)
+  }
+
   if (loading) {
     return (
-      <div className="container mx-auto px-3 py-4 max-w-2xl">
-        <div className="space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-          <div className="bg-white rounded-lg border p-4 space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-            <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 p-3 pb-20">
+        <div className="max-w-2xl mx-auto space-y-4">
+          <div className="h-8 bg-gradient-to-r from-slate-200 to-slate-300 rounded-xl animate-pulse"></div>
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-4 space-y-4">
+            <div className="h-6 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg animate-pulse"></div>
+            <div className="h-48 bg-gradient-to-br from-slate-200 to-slate-300 rounded-xl animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -146,11 +179,13 @@ const RegistrationWork = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="text-center">
-          <Package className="h-12 w-12 text-red-500 mx-auto mb-3" />
-          <h3 className="font-semibold text-red-900 mb-1">Ошибка загрузки</h3>
-          <p className="text-sm text-red-700">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 flex items-center justify-center p-3 pb-20">
+        <div className="text-center bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-xl border border-rose-200/50 max-w-sm">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-red-500 rounded-xl shadow-lg mb-4">
+            <Package className="h-8 w-8 text-white" />
+          </div>
+          <h3 className="text-xl font-bold text-rose-900 mb-2">Ошибка загрузки</h3>
+          <p className="text-rose-700">{error}</p>
         </div>
       </div>
     )
@@ -158,68 +193,177 @@ const RegistrationWork = () => {
 
   if (!request) {
     return (
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="text-center">
-          <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-          <h3 className="font-semibold text-gray-900 mb-1">Заявка не найдена</h3>
-          <p className="text-sm text-gray-500">Запрашиваемая заявка не существует</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 flex items-center justify-center p-3 pb-20">
+        <div className="text-center bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-xl border border-slate-200/50 max-w-sm">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-slate-400 to-slate-500 rounded-xl shadow-lg mb-4">
+            <Package className="h-8 w-8 text-white" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 mb-2">Заявка не найдена</h3>
+          <p className="text-slate-600">Запрашиваемая заявка не существует</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-3 py-4 max-w-2xl pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 pb-20 relative">
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
-      <div className="space-y-4">
-        {/* Компактный Header */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Оприходование</h1>
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-blue-700">
-              <Hash className="w-4 h-4" />
-              {request.request_id}
-            </div>
-            {scannedDevices.length > 0 && (
-              <div className="text-blue-800 font-medium">
-                {scannedDevices.length}/{request.quantity}
+      {/* Анимированный оверлей редиректа */}
+      {isRedirecting && (
+        <div className="fixed inset-0 z-50 bg-gradient-to-br from-violet-600/95 via-purple-600/95 to-indigo-600/95 backdrop-blur-xl flex items-center justify-center">
+          {/* Декоративные элементы */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl animate-pulse"></div>
+          <div
+            className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-white/10 to-transparent rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: "1s" }}
+          ></div>
+
+          <div className="text-center text-white max-w-sm mx-auto px-6">
+            {/* Анимированная иконка успеха */}
+            <div className="relative mb-8">
+              <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto backdrop-blur-sm border border-white/30 shadow-2xl">
+                <CheckCircle className="w-12 h-12 text-white animate-pulse" />
               </div>
-            )}
+              <div className="absolute inset-0 w-24 h-24 bg-emerald-400/30 rounded-full mx-auto animate-ping"></div>
+            </div>
+
+            {/* Заголовок */}
+            <div
+              className="opacity-0 translate-y-5 transition-all duration-600 ease-out"
+              style={{
+                opacity: 1,
+                transform: "translateY(0px)",
+                transitionDelay: "0ms",
+              }}
+            >
+              <h2 className="text-2xl font-bold mb-3">Успешно отправлено!</h2>
+            </div>
+
+            <div
+              className="opacity-0 translate-y-5 transition-all duration-600 ease-out"
+              style={{
+                opacity: 1,
+                transform: "translateY(0px)",
+                transitionDelay: "300ms",
+              }}
+            >
+              <p className="text-white/80 mb-8">Переходим к списку заявок...</p>
+            </div>
+
+            {/* Прогресс-бар */}
+            <div className="relative mb-6">
+              <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded-full transition-all duration-100 ease-out shadow-lg relative"
+                  style={{ width: `${redirectProgress}%` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent rounded-full"></div>
+                </div>
+              </div>
+              <div className="flex justify-between text-xs text-white/60 mt-2">
+                <span>Обработка...</span>
+                <span>{Math.round(redirectProgress)}%</span>
+              </div>
+            </div>
+
+            {/* Анимированная стрелка */}
+            <div className="flex items-center justify-center gap-2 text-white/80 animate-bounce">
+              <span className="text-sm">Переход</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
           </div>
+
+          {/* Анимированные частицы */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(20)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-2 h-2 bg-white/20 rounded-full"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animation: `float-${i} ${3 + Math.random() * 2}s ease-in-out infinite`,
+                  animationDelay: `${Math.random() * 3}s`,
+                }}
+              ></div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-2xl mx-auto px-3 py-4 space-y-4">
+        {/* Компактный Header */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-violet-200/50 shadow-lg p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent truncate">
+                Оприходование
+              </h1>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-violet-600 font-medium">#{request.request_id}</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-indigo-600 font-medium truncate">{request.project}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Компактный прогресс */}
+          {scannedDevices.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">Прогресс</span>
+                <span className="font-bold text-violet-600">
+                  {scannedDevices.length}/{request.quantity} ({getProgressPercentage()}%)
+                </span>
+              </div>
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-500"
+                  style={{ width: `${getProgressPercentage()}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Компактная информация о заявке */}
-        <div className="bg-white rounded-lg border">
-          <div className="p-3 border-b flex items-center justify-between">
-            <h2 className="font-semibold flex items-center gap-2">
-              <Package className="h-4 w-4 text-blue-600" />
-              Заявка
-            </h2>
-            <button onClick={() => setIsExpanded(!isExpanded)} className="p-1 rounded hover:bg-gray-100">
-              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-          </div>
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Package className="w-5 h-5 text-blue-600" />
+              <span className="font-semibold text-slate-900">Детали заявки</span>
+            </div>
+            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
 
           {isExpanded && (
-            <div className="p-3 space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-gray-500 mb-1">Проект</p>
-                  <p className="font-medium">{request.project}</p>
+            <div className="px-4 pb-4 border-t border-slate-200/50">
+              <div className="grid grid-cols-2 gap-3 pt-3">
+                <div className="space-y-1">
+                  <p className="text-xs text-slate-500 font-medium">Устройство</p>
+                  <p className="text-sm font-semibold text-slate-900">{request.device}</p>
                 </div>
-                <div>
-                  <p className="text-gray-500 mb-1">Устройство</p>
-                  <p className="font-medium">{request.device}</p>
+                <div className="space-y-1">
+                  <p className="text-xs text-slate-500 font-medium">Количество</p>
+                  <p className="text-sm font-semibold text-slate-900">{request.quantity} шт.</p>
                 </div>
-                <div>
-                  <p className="text-gray-500 mb-1">Количество</p>
-                  <p className="font-medium">{request.quantity} шт.</p>
+                <div className="space-y-1">
+                  <p className="text-xs text-slate-500 font-medium">Дедлайн</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {new Date(request.deadline).toLocaleDateString("ru-RU")}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-gray-500 mb-1">Дедлайн</p>
-                  <p className="font-medium">{new Date(request.deadline).toLocaleDateString("ru-RU")}</p>
+                <div className="space-y-1">
+                  <p className="text-xs text-slate-500 font-medium">Статус</p>
+                  <p className="text-sm font-semibold text-emerald-600">Активна</p>
                 </div>
               </div>
             </div>
@@ -227,69 +371,105 @@ const RegistrationWork = () => {
         </div>
 
         {/* Компактный сканер */}
-        <div className="bg-white rounded-lg border p-3">
-          <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <Plus className="w-4 h-4 text-green-600" />
-            Сканирование
-          </h3>
-          <ScannerInput onScan={handleNewScan} />
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
+          <div className="p-4 border-b border-slate-200/50">
+            <div className="flex items-center gap-3">
+              <Plus className="w-5 h-5 text-emerald-600" />
+              <span className="font-semibold text-slate-900">Добавление устройств</span>
+            </div>
+          </div>
+          <div className="p-4">
+            <ScannerInput onScan={handleNewScan} />
+          </div>
         </div>
 
         {/* Компактный список устройств */}
         {scannedDevices.length > 0 && (
-          <div className="bg-white rounded-lg border">
-            <div className="p-3 border-b flex items-center justify-between">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Package className="w-4 h-4 text-blue-600" />
-                Отсканировано ({scannedDevices.length})
-              </h3>
-              <button
-                onClick={clearAllDevices}
-                className="text-red-600 text-sm flex items-center gap-1 hover:bg-red-50 px-2 py-1 rounded"
-              >
-                <Trash2 className="w-3 h-3" />
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
+            <div className="p-4 border-b border-slate-200/50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="w-5 h-5 text-blue-600" />
+                <span className="font-semibold text-slate-900">Устройства</span>
+                <span className="bg-violet-100 text-violet-700 text-xs font-bold px-2 py-1 rounded-full">
+                  {scannedDevices.length}
+                </span>
+              </div>
+              <button onClick={clearAllDevices} className="text-rose-600 hover:text-rose-700 text-sm font-medium">
                 Очистить
               </button>
             </div>
-            <div className="p-3">
-              <div className="space-y-2 max-h-40 overflow-y-auto">
+
+            <div className="p-4">
+              {/* Компактный список */}
+              <div className="space-y-2 max-h-48 overflow-y-auto mb-4">
                 {scannedDevices.map((device, index) => (
-                  <div key={device.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold">
+                  <div
+                    key={device.id}
+                    className="flex items-center justify-between p-3 bg-slate-50/50 rounded-xl border border-slate-200/50 hover:bg-violet-50/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-500 text-white rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0">
                         {index + 1}
                       </div>
-                      <div>
-                        <p className="font-medium">{device.code}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(device.scannedAt).toLocaleTimeString("ru-RU")}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-slate-900 truncate">{device.code}</p>
+                        <p className="text-xs text-slate-500">
+                          {new Date(device.scannedAt).toLocaleTimeString("ru-RU", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </p>
                       </div>
                     </div>
-                    <button onClick={() => removeDevice(device.id)} className="text-red-500 hover:text-red-700 p-1">
-                      <Trash2 className="w-3 h-3" />
+                    <button
+                      onClick={() => removeDevice(device.id)}
+                      className="text-rose-500 hover:text-rose-700 p-2 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
+              </div>
+
+              {/* Компактная кнопка отправки */}
+              <div className="bg-gradient-to-r from-violet-50/50 to-purple-50/50 rounded-xl p-4 border border-violet-200/50">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-slate-900 text-sm">Готово к отправке</p>
+                    <p className="text-xs text-slate-600">
+                      {scannedDevices.length} устройств
+                      {request && scannedDevices.length < request.quantity && (
+                        <span className="text-amber-600 block">
+                          ⚠️ {scannedDevices.length}/{request.quantity}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={submitDevices}
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl hover:from-violet-700 hover:to-purple-700 disabled:opacity-50 font-semibold transition-all duration-300 shadow-lg text-sm flex-shrink-0"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span className="hidden sm:inline">Отправка...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span className="hidden sm:inline">Отправить</span>
+                        <span className="sm:hidden">({scannedDevices.length})</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Фиксированная кнопка отправки */}
-      {scannedDevices.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg">
-          <button
-            onClick={submitDevices}
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
-          >
-            <Send className="w-4 h-4" />
-            {isSubmitting ? "Отправка..." : `Отправить (${scannedDevices.length})`}
-          </button>
-        </div>
-      )}
     </div>
   )
 }

@@ -11,7 +11,7 @@ import {
   LogOut,
   Home,
   ClipboardIcon,
-  Calendar,
+  CreditCard,
   Users,
   Settings,
   FileText,
@@ -34,8 +34,8 @@ export default function ResponsiveHeader() {
 
   // Определяем разрешения для каждой роли
   const rolePermissions = {
-    admin: ["dashboard", "application", "registration", "calendar", "users", "settings", "logs"],
-    moderator: ["dashboard", "application", "registration", "calendar"],
+    admin: ["dashboard", "application", "registration", "atm", "users", "settings", "logs"],
+    moderator: ["dashboard", "application", "registration", "atm"],
     user: ["dashboard", "application"],
   }
 
@@ -78,12 +78,12 @@ export default function ResponsiveHeader() {
       path: "/registration",
     },
     {
-      id: "calendar",
-      label: "Календарь",
-      icon: Calendar,
+      id: "atm",
+      label: "Устройстава",
+      icon: CreditCard,
       color: "from-orange-500 to-red-500",
-      permission: "calendar",
-      path: "/calendar",
+      permission: "atm",
+      path: "/atm",
     },
     {
       id: "users",

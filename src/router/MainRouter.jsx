@@ -7,6 +7,7 @@ import Settings from '../pages/Settings';
 import Logs from '../pages/Logs';
 import Registration from '../pages/Registration';
 import RegistrationWork from '../pages/RegistrationWork';
+import SearchPage from '../pages/Atm';
 import PrivateRoute from '../components/PrivateRoute';
 import Layout from '../layouts/Layout';
 
@@ -30,6 +31,7 @@ export default function MainRouter() {
         <Route path="/logs" element={<Logs />} />
         <Route path="/registration" element={<Registration />} />
         <Route path="/requests/:id/receive" element={<RegistrationWork />} />
+        <Route path="/atm" element={<SearchPage />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 
