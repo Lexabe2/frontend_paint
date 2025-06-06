@@ -1,4 +1,3 @@
-// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -11,22 +10,22 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-      cleanupOutdatedCaches: true,
-      clientsClaim: true,
-      skipWaiting: true,
-      runtimeCaching: [
-        {
-          urlPattern: ({ request }) => request.destination === 'document',
-          handler: 'NetworkFirst',
-          options: {
-            cacheName: 'html-cache',
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.destination === 'document',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+            },
           },
-        },
-      ],
-    },
+        ],
+      },
       includeAssets: ['apple-touch-icon.png'],
       devOptions: {
-        enabled: true // 👈 ДОБАВЬ ЭТО
+        enabled: true,
       },
       manifest: {
         name: 'Покрасочная',
@@ -56,7 +55,21 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    chunkSizeWarningLimit: 1500, // увеличить лимит до 1.5 MB
+
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Все зависимости из node_modules идут в "vendor"
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
+        },
+      },
+    },
+  },
   server: {
-    host: true, // чтобы можно было открыть с телефона
+    host: true, // доступ с телефона
   },
 })
