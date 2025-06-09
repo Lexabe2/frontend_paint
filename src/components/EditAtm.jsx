@@ -3,19 +3,32 @@ import { useState, useRef } from "react"
 export default function EditAtm({ data }) {
   const [model, setModel] = useState(data.model || "")
   const [comment, setComment] = useState("")
-  const [image, setImage] = useState(null)
-  const [preview, setPreview] = useState(null)
+  const [images, setImages] = useState([])
+  const [previews, setPreviews] = useState([])
 
-  // Ссылки на скрытые input'ы
   const cameraInputRef = useRef(null)
   const fileInputRef = useRef(null)
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setImage(file)
-      setPreview(URL.createObjectURL(file))
-    }
+    const files = Array.from(e.target.files)
+
+    const newImages = [...images, ...files]
+    const newPreviews = [
+      ...previews,
+      ...files.map((file) => URL.createObjectURL(file)),
+    ]
+
+    setImages(newImages)
+    setPreviews(newPreviews)
+  }
+
+  const handleRemoveImage = (index) => {
+    const newImages = [...images]
+    const newPreviews = [...previews]
+    newImages.splice(index, 1)
+    newPreviews.splice(index, 1)
+    setImages(newImages)
+    setPreviews(newPreviews)
   }
 
   return (
@@ -67,7 +80,6 @@ export default function EditAtm({ data }) {
           </button>
         </div>
 
-        {/* Камера */}
         <input
           ref={cameraInputRef}
           type="file"
@@ -75,24 +87,36 @@ export default function EditAtm({ data }) {
           capture="environment"
           onChange={handleImageChange}
           className="hidden"
+          multiple
         />
 
-        {/* Файлы */}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           onChange={handleImageChange}
           className="hidden"
+          multiple
         />
 
-        {preview && (
-          <div className="mt-4">
-            <img
-              src={preview}
-              alt="Фото устройства"
-              className="w-full max-h-64 object-contain border rounded"
-            />
+        {previews.length > 0 && (
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {previews.map((src, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={src}
+                  alt={`Фото ${index + 1}`}
+                  className="w-full max-h-48 object-cover border rounded"
+                />
+                <button
+                  onClick={() => handleRemoveImage(index)}
+                  className="absolute top-1 right-1 bg-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700"
+                  title="Удалить"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </div>
