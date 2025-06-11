@@ -17,7 +17,7 @@ const CreatedRequestsTable = () => {
       setError("")
 
       try {
-        const res = await api.get("/requests-list/?status=Создан")
+        const res = await api.get("/requests-list/?status=Создана")
         setRequests(res.data)
       } catch (err) {
         console.error("Ошибка при загрузке заявок:", err)
