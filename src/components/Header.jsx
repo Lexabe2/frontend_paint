@@ -13,6 +13,7 @@ import {
   ClipboardIcon,
   CreditCard,
   Users,
+  FileWarning,
   Settings,
   FileText,
   Star,
@@ -34,7 +35,7 @@ export default function ResponsiveHeader() {
 
   // Определяем разрешения для каждой роли
   const rolePermissions = {
-    admin: ["dashboard", "application", "registration", "atm", "users", "settings", "logs"],
+    admin: ["dashboard", "application", "registration", "atm", "complaints", "settings", "logs"],
     moderator: ["dashboard", "application", "registration", "atm"],
     user: ["dashboard", "application"],
   }
@@ -86,12 +87,12 @@ export default function ResponsiveHeader() {
       path: "/atm",
     },
     {
-      id: "users",
-      label: "Пользователи",
-      icon: Users,
+      id: "complaints",
+      label: "Рекламации",
+      icon: FileWarning,
       color: "from-indigo-500 to-purple-500",
-      permission: "users",
-      path: "/users",
+      permission: "complaints",
+      path: "/complaints",
       requiredRoles: ["admin"],
     },
   ]
