@@ -181,6 +181,8 @@ export default function CodeStep({ code, setCode, onVerify }) {
                   onPaste={index === 0 ? handlePaste : undefined}
                   onFocus={() => setActiveInput(index)}
                   disabled={isLoading}
+                  autoComplete={index === 0 ? "one-time-code" : "off"} // 👈 добавь
+                  name={index === 0 ? "one-time-code" : undefined}     // 👈 по стандарту
                   className={`
                     w-full h-full text-center text-xl font-bold bg-transparent focus:outline-none
                     ${isLoading ? "text-gray-400" : "text-gray-800"}

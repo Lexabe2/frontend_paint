@@ -12,36 +12,35 @@ export default function CameraCapture({ onCapture, onClose }) {
   const [isCapturing, setIsCapturing] = useState(false)
 
   useEffect(() => {
-  const initCamera = async () => {
-    try {
-      setIsLoading(true)
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "environment",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      })
-      setStream(mediaStream)
-      setError(null)
-    } catch (err) {
-      console.error("Camera error:", err)
-      setError("Не удалось получить доступ к камере")
-    } finally {
-      setIsLoading(false)
+    const initCamera = async () => {
+      try {
+        setIsLoading(true)
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        })
+        setStream(mediaStream)
+        setError(null)
+      } catch (err) {
+        console.error("Camera error:", err)
+        setError("Не удалось получить доступ к камере")
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }
 
-  initCamera()
+    initCamera()
 
-  return () => {
-    if (videoRef.current) {
-      videoRef.current.srcObject = null
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = null
+      }
+      stream?.getTracks().forEach((track) => track.stop())
     }
-    stream?.getTracks().forEach((track) => track.stop())
-  }
-}, [])
-
+  }, [])
 
   useEffect(() => {
     if (videoRef.current && stream) {
@@ -81,7 +80,7 @@ export default function CameraCapture({ onCapture, onClose }) {
 
   const handleClose = () => {
     if (videoRef.current) {
-      videoRef.current.srcObject = null // <== очистить видео
+      videoRef.current.srcObject = null
     }
 
     if (stream) {
@@ -90,10 +89,9 @@ export default function CameraCapture({ onCapture, onClose }) {
       })
     }
 
-    setStream(null) // <== сбрасываем состояние потока
+    setStream(null)
     onClose()
   }
-
 
   if (error) {
     return (

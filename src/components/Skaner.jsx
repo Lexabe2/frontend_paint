@@ -34,9 +34,12 @@ export default function ScannerInput({ onScan, onError }) {
             setIsActive(false)
             stopScanning()
           }, 800)
-        } else if (error && error.name !== "NotFoundException") {
+        } else if (error && error.name !== "NotFoundException" && error.name !== "NotFoundException2") {
+          // Игнорируем NotFoundException и NotFoundException2 - это нормальные ошибки когда код не найден
+          console.warn("Scanner error:", error)
           onError?.(error)
         }
+        // Если это NotFoundException/NotFoundException2, просто игнорируем - это означает что код не найден в текущем кадре
       })
 
       controlsRef.current = controls
@@ -84,6 +87,7 @@ export default function ScannerInput({ onScan, onError }) {
       {/* Компактный переключатель режимов */}
       <div className="flex p-1 bg-slate-100 rounded-xl">
         <button
+          type="button"
           onClick={() => setShowManualInput(false)}
           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
             !showManualInput ? "bg-white text-violet-600 shadow-sm" : "text-slate-600"
@@ -93,6 +97,7 @@ export default function ScannerInput({ onScan, onError }) {
           Камера
         </button>
         <button
+          type="button"
           onClick={() => setShowManualInput(true)}
           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
             showManualInput ? "bg-white text-violet-600 shadow-sm" : "text-slate-600"
@@ -217,6 +222,7 @@ export default function ScannerInput({ onScan, onError }) {
 
             {scanning ? (
               <button
+                type="button"
                 onClick={stopScanning}
                 className="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors font-medium text-sm"
               >
@@ -224,6 +230,7 @@ export default function ScannerInput({ onScan, onError }) {
               </button>
             ) : (
               <button
+                type="button"
                 onClick={startScan}
                 className="px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg hover:from-violet-700 hover:to-purple-700 transition-all font-medium text-sm flex items-center gap-2"
               >
