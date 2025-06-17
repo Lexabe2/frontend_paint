@@ -339,7 +339,7 @@ export default function ComplaintsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
+    <div className="min-h-screen from-slate-50 via-blue-50/20 to-indigo-50/30">
       <div className="pb-20 sm:pb-4">
         {/* Мобильный заголовок с улучшенным дизайном */}
         <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/50 px-4 py-3 sm:hidden shadow-sm">
@@ -615,6 +615,7 @@ export default function ComplaintsPage() {
                           {complaint.is_overdue && (
                             <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs font-semibold">
                               <AlertTriangle className="w-3 h-3" />
+                              
                               <span className="hidden sm:inline">Просрочено</span>
                             </span>
                           )}
@@ -683,7 +684,9 @@ export default function ComplaintsPage() {
                               </div>
                               <div>
                                 <h4 className="font-semibold text-amber-800 text-sm">Крайний срок</h4>
-                                <p className="text-amber-700 text-xs">{complaint.due_date}</p>
+                                <p className="text-amber-700 text-xs">
+                                  {new Date(complaint.due_date).toLocaleDateString('ru-RU')}
+                                </p>
                               </div>
                             </div>
                           </div>
