@@ -91,9 +91,8 @@ export default function ApplicationPage() {
         {/* Заголовок */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            Создание заявки
+            Просмотр и создание заявок
           </h1>
-          <p className="text-gray-600 text-lg">Заполните форму для создания новой заявки на оборудование</p>
         </motion.div>
 
         <div className="grid grid-cols-1 gap-8">

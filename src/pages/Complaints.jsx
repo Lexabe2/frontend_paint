@@ -471,7 +471,7 @@ export default function ComplaintsPage() {
         </div>
 
         {/* Улучшенный блок поиска и фильтров */}
-        <div className="px-4 mb-4 sm:px-6 sm:max-w-7xl sm:mx-auto">
+        <div className="px-4 mb-4 sm:px-6 sm:max-w-7xl sm:mx-auto pt-5 sm:pt-0">
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-200/50 overflow-hidden">
             {/* Поиск */}
             <div className="p-4">
