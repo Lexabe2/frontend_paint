@@ -379,7 +379,7 @@ const RegistrationWork = () => {
             </div>
           </div>
           <div className="p-4">
-            <ScannerInput onScan={handleNewScan} />
+            <ScannerInput onScan={handleNewScan} allowManualInput={true}/>
           </div>
         </div>
 

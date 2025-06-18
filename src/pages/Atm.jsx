@@ -355,7 +355,7 @@ export default function SearchPage() {
         {!isScanned && (
           <div className="mt-4 sm:mt-6">
             <div className="bg-gray-50 rounded-xl p-4 sm:p-6 border-2 border-dashed border-gray-300">
-              <ScannerInput onScan={handleNewScan} />
+              <ScannerInput onScan={handleNewScan} allowManualInput={true}/>
             </div>
           </div>
         )}

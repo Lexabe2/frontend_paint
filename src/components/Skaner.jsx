@@ -2,75 +2,135 @@
 
 import { useEffect, useRef, useState } from "react"
 import { BrowserMultiFormatReader } from "@zxing/browser"
-import { Camera, Scan, Keyboard, Zap } from "lucide-react"
+import { Camera, Scan, Keyboard, Zap, Play, Square } from "lucide-react"
 
-export default function ScannerInput({ onScan, onError }) {
+export default function ScannerInput({ onScan, onError, allowManualInput = false }) {
   const videoRef = useRef(null)
   const [scanning, setScanning] = useState(false)
   const [isActive, setIsActive] = useState(false)
   const [manualInput, setManualInput] = useState("")
   const [showManualInput, setShowManualInput] = useState(false)
+  const [cameraStarted, setCameraStarted] = useState(false)
+
   const codeReaderRef = useRef(null)
   const controlsRef = useRef(null)
   const streamRef = useRef(null)
 
   useEffect(() => {
     codeReaderRef.current = new BrowserMultiFormatReader()
-
     return () => {
-      stopScanning()
+      // Полная очистка при размонтировании
+      stopCamera()
     }
   }, [])
 
-  const startScan = async () => {
+  const startCamera = async () => {
     try {
+      console.log("Starting camera...")
+      setCameraStarted(true)
       setScanning(true)
+      setIsActive(false)
+
+      // Получаем доступ к камере
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      })
+
+      // Сохраняем поток
+      streamRef.current = stream
+
+      // Подключаем к видео элементу
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+
+      console.log("Camera stream started")
+
+      // Запускаем сканирование
       const controls = await codeReaderRef.current.decodeFromVideoDevice(null, videoRef.current, (result, error) => {
         if (result) {
+          console.log("Code scanned:", result.getText())
           setIsActive(true)
           onScan?.(result.getText())
 
+          // Останавливаем камеру после успешного сканирования
           setTimeout(() => {
             setIsActive(false)
-            stopScanning()
+            stopCamera()
           }, 800)
         } else if (error && error.name !== "NotFoundException" && error.name !== "NotFoundException2") {
-          // Игнорируем NotFoundException и NotFoundException2 - это нормальные ошибки когда код не найден
           console.warn("Scanner error:", error)
           onError?.(error)
         }
-        // Если это NotFoundException/NotFoundException2, просто игнорируем - это означает что код не найден в текущем кадре
       })
 
       controlsRef.current = controls
-
-      if (videoRef.current && videoRef.current.srcObject) {
-        streamRef.current = videoRef.current.srcObject
-      }
+      console.log("Scanner controls created")
     } catch (err) {
+      console.error("Failed to start camera:", err)
       onError?.(err)
+      setCameraStarted(false)
       setScanning(false)
     }
   }
 
-  const stopScanning = () => {
+  const stopCamera = () => {
+    console.log("Stopping camera...")
+
+    // Останавливаем декодер
     if (controlsRef.current) {
-      controlsRef.current.stop()
+      try {
+        controlsRef.current.stop()
+        console.log("Scanner controls stopped")
+      } catch (e) {
+        console.warn("Error stopping scanner controls:", e)
+      }
       controlsRef.current = null
     }
 
+    // Останавливаем все треки медиа потока
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => {
-        track.stop()
+        try {
+          track.stop()
+          console.log("Camera track stopped:", track.kind, "state:", track.readyState)
+        } catch (e) {
+          console.warn("Error stopping track:", e)
+        }
       })
       streamRef.current = null
     }
 
-    if (videoRef.current) {
-      videoRef.current.srcObject = null
+    // Получаем поток из видео элемента как запасной вариант
+    if (videoRef.current && videoRef.current.srcObject) {
+      const videoStream = videoRef.current.srcObject
+      videoStream.getTracks().forEach((track) => {
+        try {
+          track.stop()
+          console.log("Video element track stopped:", track.kind, "state:", track.readyState)
+        } catch (e) {
+          console.warn("Error stopping video track:", e)
+        }
+      })
     }
 
+    // Очищаем видео элемент
+    if (videoRef.current) {
+      videoRef.current.pause()
+      videoRef.current.srcObject = null
+      console.log("Video element cleared")
+    }
+
+    // Обновляем состояния
     setScanning(false)
+    setCameraStarted(false)
+    setIsActive(false)
+
+    console.log("Camera stopped completely")
   }
 
   const handleManualSubmit = (e) => {
@@ -78,38 +138,49 @@ export default function ScannerInput({ onScan, onError }) {
     if (manualInput.trim()) {
       onScan?.(manualInput.trim())
       setManualInput("")
-      setShowManualInput(false)
     }
   }
 
   return (
     <div className="space-y-4">
-      {/* Компактный переключатель режимов */}
-      <div className="flex p-1 bg-slate-100 rounded-xl">
-        <button
-          type="button"
-          onClick={() => setShowManualInput(false)}
-          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-            !showManualInput ? "bg-white text-violet-600 shadow-sm" : "text-slate-600"
-          }`}
-        >
-          <Camera className="w-4 h-4" />
-          Камера
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowManualInput(true)}
-          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-            showManualInput ? "bg-white text-violet-600 shadow-sm" : "text-slate-600"
-          }`}
-        >
-          <Keyboard className="w-4 h-4" />
-          Ввод
-        </button>
-      </div>
+      {/* Показываем переключатель только если allowManualInput */}
+      {allowManualInput && (
+        <div className="flex p-1 bg-slate-100 rounded-xl">
+          <button
+            type="button"
+            onClick={() => {
+              setShowManualInput(false)
+              if (cameraStarted) {
+                stopCamera()
+              }
+            }}
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              !showManualInput ? "bg-white text-violet-600 shadow-sm" : "text-slate-600"
+            }`}
+          >
+            <Camera className="w-4 h-4" />
+            Камера
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowManualInput(true)
+              if (cameraStarted) {
+                stopCamera()
+              }
+            }}
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              showManualInput ? "bg-white text-violet-600 shadow-sm" : "text-slate-600"
+            }`}
+          >
+            <Keyboard className="w-4 h-4" />
+            Ввод
+          </button>
+        </div>
+      )}
 
-      {/* Компактный ручной ввод */}
-      {showManualInput && (
+      {/* Ручной ввод */}
+      {allowManualInput && showManualInput && (
         <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl p-4 border border-violet-200/50">
           <div className="text-center mb-4">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl shadow-lg mb-3">
@@ -140,49 +211,48 @@ export default function ScannerInput({ onScan, onError }) {
         </div>
       )}
 
-      {/* Компактный сканер камеры */}
-      {!showManualInput && (
+      {/* Видео и управление камерой */}
+      {(!allowManualInput || (allowManualInput && !showManualInput)) && (
         <>
-          {/* Зона сканирования */}
           <div className="relative bg-slate-900 rounded-xl overflow-hidden shadow-lg">
             <video ref={videoRef} muted autoPlay playsInline className="w-full h-40 object-cover" />
 
-            {/* Рамка сканирования */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className={`relative w-24 h-24 transition-all duration-300 ${isActive ? "scale-110" : "scale-100"}`}>
+            {/* Рамка сканирования - показываем только когда камера активна */}
+            {cameraStarted && scanning && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div
-                  className={`absolute inset-0 rounded-xl border-2 transition-colors duration-300 ${
-                    isActive
-                      ? "border-emerald-400 shadow-lg shadow-emerald-400/50"
-                      : scanning
-                        ? "border-white shadow-lg shadow-white/30"
-                        : "border-slate-400"
-                  }`}
+                  className={`relative w-24 h-24 transition-all duration-300 ${isActive ? "scale-110" : "scale-100"}`}
                 >
-                  {/* Углы рамки */}
-                  {[
-                    "top-left:-top-1 -left-1 border-l-3 border-t-3 rounded-tl-lg",
-                    "top-right:-top-1 -right-1 border-r-3 border-t-3 rounded-tr-lg",
-                    "bottom-left:-bottom-1 -left-1 border-l-3 border-b-3 rounded-bl-lg",
-                    "bottom-right:-bottom-1 -right-1 border-r-3 border-b-3 rounded-br-lg",
-                  ].map((corner, index) => (
-                    <div
-                      key={index}
-                      className={`absolute w-4 h-4 transition-colors duration-300 ${corner.split(":")[1]} ${
-                        isActive ? "border-emerald-400" : scanning ? "border-white" : "border-slate-400"
-                      }`}
-                    ></div>
-                  ))}
-                </div>
-
-                {/* Анимированная линия сканирования */}
-                {scanning && !isActive && (
-                  <div className="absolute inset-x-0 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent">
-                    <div className="h-full bg-emerald-400 animate-pulse rounded-full"></div>
+                  <div
+                    className={`absolute inset-0 rounded-xl border-2 transition-colors duration-300 ${
+                      isActive
+                        ? "border-emerald-400 shadow-lg shadow-emerald-400/50"
+                        : "border-white shadow-lg shadow-white/30"
+                    }`}
+                  >
+                    {[
+                      "top-left:-top-1 -left-1 border-l-3 border-t-3 rounded-tl-lg",
+                      "top-right:-top-1 -right-1 border-r-3 border-t-3 rounded-tr-lg",
+                      "bottom-left:-bottom-1 -left-1 border-l-3 border-b-3 rounded-bl-lg",
+                      "bottom-right:-bottom-1 -right-1 border-r-3 border-b-3 rounded-br-lg",
+                    ].map((corner, index) => (
+                      <div
+                        key={index}
+                        className={`absolute w-4 h-4 transition-colors duration-300 ${corner.split(":")[1]} ${
+                          isActive ? "border-emerald-400" : "border-white"
+                        }`}
+                      ></div>
+                    ))}
                   </div>
-                )}
+
+                  {!isActive && (
+                    <div className="absolute inset-x-0 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent">
+                      <div className="h-full bg-emerald-400 animate-pulse rounded-full"></div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Индикатор успешного сканирования */}
             {isActive && (
@@ -193,51 +263,60 @@ export default function ScannerInput({ onScan, onError }) {
               </div>
             )}
 
-            {/* Оверлей когда камера не активна */}
-            {!scanning && (
+            {/* Индикатор готовности */}
+            {!cameraStarted && (
               <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center">
                 <div className="text-center text-white">
-                  <Scan className="w-8 h-8 mx-auto mb-2 opacity-60" />
-                  <p className="text-sm font-medium">Готов к сканированию</p>
+                  <Camera className="w-12 h-12 mx-auto mb-3 opacity-60" />
+                  <p className="text-lg font-semibold mb-1">Камера не запущена</p>
+                  <p className="text-sm text-slate-300">Нажмите "Запустить камеру" для начала</p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Компактное управление камерой */}
+          {/* Панель управления */}
           <div className="flex items-center justify-between bg-slate-50 rounded-xl p-3">
             <div className="flex items-center gap-2 text-sm">
-              {scanning ? (
+              {!cameraStarted ? (
+                <>
+                  <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+                  <span className="text-slate-600 font-medium">Остановлена</span>
+                </>
+              ) : scanning ? (
                 <>
                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="text-emerald-600 font-medium">Активна</span>
+                  <span className="text-emerald-600 font-medium">Сканирует</span>
                 </>
               ) : (
                 <>
-                  <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
-                  <span className="text-slate-600 font-medium">Готов</span>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-blue-600 font-medium">Запущена</span>
                 </>
               )}
             </div>
 
-            {scanning ? (
-              <button
-                type="button"
-                onClick={stopScanning}
-                className="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors font-medium text-sm"
-              >
-                Стоп
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={startScan}
-                className="px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg hover:from-violet-700 hover:to-purple-700 transition-all font-medium text-sm flex items-center gap-2"
-              >
-                <Scan className="w-4 h-4" />
-                Сканировать
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {!cameraStarted ? (
+                <button
+                  type="button"
+                  onClick={startCamera}
+                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-colors font-medium text-sm flex items-center gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  Запустить камеру
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={stopCamera}
+                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg hover:from-red-700 hover:to-rose-700 transition-colors font-medium text-sm flex items-center gap-2"
+                >
+                  <Square className="w-4 h-4" />
+                  Остановить камеру
+                </button>
+              )}
+            </div>
           </div>
         </>
       )}
