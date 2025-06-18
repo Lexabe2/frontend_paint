@@ -11,10 +11,12 @@ export default function ScannerInput({ onScan, onError, allowManualInput = false
   const [manualInput, setManualInput] = useState("")
   const [showManualInput, setShowManualInput] = useState(false)
   const [cameraStarted, setCameraStarted] = useState(false)
-
+  const isMobile = typeof navigator !== "undefined" && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
   const codeReaderRef = useRef(null)
   const controlsRef = useRef(null)
   const streamRef = useRef(null)
+
+  
 
   useEffect(() => {
     codeReaderRef.current = new BrowserMultiFormatReader()
@@ -146,6 +148,7 @@ export default function ScannerInput({ onScan, onError, allowManualInput = false
       {/* Показываем переключатель только если allowManualInput */}
       {allowManualInput && (
         <div className="flex p-1 bg-slate-100 rounded-xl">
+          {allowManualInput && isMobile &&  (
           <button
             type="button"
             onClick={() => {
@@ -161,6 +164,7 @@ export default function ScannerInput({ onScan, onError, allowManualInput = false
             <Camera className="w-4 h-4" />
             Камера
           </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -212,7 +216,7 @@ export default function ScannerInput({ onScan, onError, allowManualInput = false
       )}
 
       {/* Видео и управление камерой */}
-      {(!allowManualInput || (allowManualInput && !showManualInput)) && (
+      {isMobile && (!allowManualInput || (allowManualInput && !showManualInput)) && (
         <>
           <div className="relative bg-slate-900 rounded-xl overflow-hidden shadow-lg">
             <video ref={videoRef} muted autoPlay playsInline className="w-full h-40 object-cover" />

@@ -206,7 +206,7 @@ const RegistrationWork = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 pb-20 relative">
+    <div className="min-h-screen from-slate-50 via-violet-50/30 to-indigo-50 pb-20 relative">
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 

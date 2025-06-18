@@ -5,7 +5,7 @@ import { X, Upload, Camera, FileText, Hash, Calendar, AlertTriangle, Scan, Grid3
 import ScannerInput from "./Skaner"
 import CameraCapture from "./CameraCapture"
 
-export default function CreateReclamationModal({ onClose, onCreate }) {
+export default function CreateReclamationModal({ isOpen, onClose, onCreate }) {
   const [formData, setFormData] = useState({
     serial_number: "",
     remarks: "",
@@ -18,6 +18,9 @@ export default function CreateReclamationModal({ onClose, onCreate }) {
   const [showCamera, setShowCamera] = useState(false)
   const [photoViewMode, setPhotoViewMode] = useState("grid") // "grid" или "list"
   const fileInputRef = useRef(null)
+
+  // Если модальное окно закрыто, не рендерим его
+  if (!isOpen) return null
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -76,11 +79,36 @@ export default function CreateReclamationModal({ onClose, onCreate }) {
 
     try {
       await onCreate(submitData)
+      // Сбрасываем форму после успешного создания
+      setFormData({
+        serial_number: "",
+        remarks: "",
+        due_date: "",
+        photos: [],
+      })
+      setPreviews([])
+      setShowScanner(false)
+      setShowCamera(false)
     } catch (error) {
       console.error("Ошибка создания рекламации:", error)
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleClose = () => {
+    // Сбрасываем состояние при закрытии
+    setFormData({
+      serial_number: "",
+      remarks: "",
+      due_date: "",
+      photos: [],
+    })
+    setPreviews([])
+    setShowScanner(false)
+    setShowCamera(false)
+    setIsSubmitting(false)
+    onClose()
   }
 
   return (
@@ -102,7 +130,7 @@ export default function CreateReclamationModal({ onClose, onCreate }) {
               </div>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-8 h-8 bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-lg flex items-center justify-center transition-colors"
             >
               <X className="w-4 h-4" />
@@ -342,7 +370,7 @@ export default function CreateReclamationModal({ onClose, onCreate }) {
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 rounded-xl font-semibold transition-all duration-200 text-sm sm:text-base"
               >
                 Отмена
