@@ -39,16 +39,19 @@ function Toast({ message, type, onClose }) {
 
 // Компонент карточки заявки
 function RequestCard({ request, updateStatus, updatingStatus, isExpanded, onToggle }) {
-  const isOverdue = new Date(request.deadline) < new Date()
-  const daysLeft = Math.ceil((new Date(request.deadline) - new Date()) / (1000 * 60 * 60 * 24))
+  const isOverdue = request.status !== "Отгружена" && new Date(request.deadline) < new Date()
+  const daysLeft = request.status !== "Отгружена"
+  ? Math.ceil((new Date(request.deadline) - new Date()) / (1000 * 60 * 60 * 24))
+  : null;
 
   const getStatusColor = (status) => {
     const colors = {
-      новый: "bg-blue-100 text-blue-800 border-blue-200",
-      "в работе": "bg-amber-100 text-amber-800 border-amber-200",
-      завершён: "bg-green-100 text-green-800 border-green-200",
+      "Создана": "bg-blue-100 text-blue-800 border-blue-200",
+      "В работе": "bg-amber-100 text-amber-800 border-amber-200",
+      "Готова": "bg-green-100 text-green-800 border-green-200",
+      "Отгружена": "bg-gray-100 text-gray-800 border-gray-200", // нейтральный цвет
     }
-    return colors[status] || colors["новый"]
+    return colors[status] || "bg-blue-100 text-blue-800 border-blue-200" // дефолт
   }
 
   const getDeadlineColor = () => {
@@ -88,7 +91,7 @@ function RequestCard({ request, updateStatus, updatingStatus, isExpanded, onTogg
         <div className="flex items-center justify-between mt-3 text-sm">
           <span className="text-gray-600">{request.quantity} шт.</span>
           <span className={`font-medium ${getDeadlineColor()}`}>
-            {isOverdue ? `Просрочено на ${Math.abs(daysLeft)} дн.` : `${daysLeft} дн. до срока`}
+            {daysLeft !== null && <p>Осталось дней: {daysLeft}</p>}
           </span>
         </div>
       </div>
@@ -144,9 +147,8 @@ function RequestCard({ request, updateStatus, updatingStatus, isExpanded, onTogg
                   disabled={updatingStatus[request.request_id]}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                 >
-                  <option value="новый">Новый</option>
-                  <option value="в работе">В работе</option>
-                  <option value="завершён">Завершён</option>
+                  <option value="Готова">Готова</option>
+                  <option value="Отгружена">Отгружена</option>
                 </select>
               </div>
             </div>
