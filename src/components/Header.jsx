@@ -612,7 +612,7 @@ export default function ResponsiveHeader() {
       {isMobile && (
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-2 py-2 safe-area-pb">
           <div className="flex items-center justify-around">
-            {navigationItems.slice(0, 4).map((item) => {
+            {navigationItems.slice(0, 5).map((item) => {
               const Icon = item.icon
               const isActive = window.location.pathname === item.path
               return (

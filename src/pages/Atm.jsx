@@ -276,7 +276,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-2 sm:p-4 animate-in fade-in duration-500">
+    <div className="min-l-screen flex flex-col p-2 sm:p-4 animate-in fade-in duration-500">
       {/* PWA Install Banner */}
       {showInstallPrompt && (
         <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white p-3 z-50 shadow-lg animate-in slide-in-from-top-2 duration-300">

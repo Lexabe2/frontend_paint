@@ -35,7 +35,7 @@ function LoadingAnimation({ stage }) {
   ]
 
   return (
-    <div className="min-h-screen from-gray-50 via-red-50 to-orange-50 flex items-center justify-center">
+    <div className="min-l-screen from-gray-50 via-red-50 to-orange-50 flex items-center justify-center mt-10">
       <div className="text-center">
         {/* Основная анимация */}
         <div className="relative">

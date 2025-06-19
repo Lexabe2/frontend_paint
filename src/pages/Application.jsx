@@ -234,7 +234,7 @@ export default function ApplicationPage() {
   }
 
   return (
-    <div className="min-h-screen from-slate-50 via-blue-50 to-indigo-100 animate-in fade-in duration-500">
+    <div className="min-l-screen from-slate-50 via-blue-50 to-indigo-100 animate-in fade-in duration-500">
       <div className="max-w-6xl mx-auto p-6">
         {/* Заголовок */}
         {showHeader && (

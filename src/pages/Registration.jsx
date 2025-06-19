@@ -147,7 +147,7 @@ export default function Registration() {
   }
 
   return (
-    <div className="min-h-screen from-slate-50 to-slate-100 animate-in fade-in duration-500">
+    <div className="min-l-screen from-slate-50 to-slate-100 animate-in fade-in duration-500">
       <div className="container mx-auto px-4 py-8">
         {/* Заголовок */}
         {showHeader && (
