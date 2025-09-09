@@ -31,9 +31,9 @@ export default defineConfig(({ mode }) => {
           enabled: isDev, // ✅ включено только в режиме разработки
         },
         manifest: {
-          name: 'Покрасочная',
+          name: 'АТМ',
           short_name: 'App',
-          description: 'Покрасочная',
+          description: 'АТМ',
           theme_color: '#ffffff',
           background_color: '#ffffff',
           display: 'standalone',

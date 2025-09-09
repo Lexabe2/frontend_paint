@@ -10,6 +10,7 @@ import RegistrationWork from '../pages/RegistrationWork';
 import SearchPage from '../pages/Atm';
 import ComplaintsPage from '../pages/Complaints';
 import PrivateRoute from '../components/PrivateRoute';
+import AddAtm from '../pages/AddAtm.jsx';
 import Layout from '../layouts/Layout';
 
 export default function MainRouter() {
@@ -34,6 +35,7 @@ export default function MainRouter() {
         <Route path="/requests/:id/receive" element={<RegistrationWork />} />
         <Route path="/atm" element={<SearchPage />} />
         <Route path="/complaints" element={<ComplaintsPage />} />
+        <Route path="/add_atm" element={<AddAtm />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 
