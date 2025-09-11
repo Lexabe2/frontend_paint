@@ -20,7 +20,6 @@ const RegistrationWork = () => {
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [redirectProgress, setRedirectProgress] = useState(0)
 
-  // Toast states
   const [toast, setToast] = useState(null)
 
   const storageKey = `scanned_devices_${id}`
