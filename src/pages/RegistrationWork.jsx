@@ -355,16 +355,6 @@ const RegistrationWork = () => {
                   <p className="text-xs text-slate-500 font-medium">Количество</p>
                   <p className="text-sm font-semibold text-slate-900">{request.quantity} шт.</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-slate-500 font-medium">Дедлайн</p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {new Date(request.deadline).toLocaleDateString("ru-RU")}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-slate-500 font-medium">Статус</p>
-                  <p className="text-sm font-semibold text-emerald-600">Активна</p>
-                </div>
               </div>
             </div>
           )}

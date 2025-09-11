@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { 
-  AlertCircle, 
-  ClipboardList, 
-  Search, 
-  Filter, 
-  Calendar, 
-  Package, 
-  Building2, 
-  Hash, 
-  Clock, 
+import {
+  AlertCircle,
+  ClipboardList,
+  Search,
+  Filter,
+  Calendar,
+  Package,
+  Building2,
+  Hash,
+  Clock,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -16,18 +16,16 @@ import {
   FileText,
   CreditCard,
   User,
-  RefreshCw,
-  Play
+  RefreshCw
 } from "lucide-react";
 import api from "../api/axios";
 
-export default function RequestsList({ onRefresh }) {
+export default function RequestsList() {
   const [requests, setRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [processingRequests, setProcessingRequests] = useState(new Set());
-  
+
   // Фильтры
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -55,36 +53,6 @@ export default function RequestsList({ onRefresh }) {
     }
   };
 
-  // Функция для взятия заявки в работу
-  const handleTakeToWork = async (requestId) => {
-    try {
-      setProcessingRequests(prev => new Set(prev).add(requestId));
-      
-      await api.patch(`/requests/${requestId}/`, {
-        status: 'Заявка принята(покрасочная)'
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      // Обновляем список заявок
-      await fetchRequests();
-      if (onRefresh) onRefresh();
-      
-    } catch (error) {
-      console.error("Ошибка при изменении статуса заявки:", error);
-      alert("Не удалось взять заявку в работу");
-    } finally {
-      setProcessingRequests(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(requestId);
-        return newSet;
-      });
-    }
-  };
-
   useEffect(() => {
     fetchRequests();
   }, []);
@@ -95,7 +63,7 @@ export default function RequestsList({ onRefresh }) {
 
     // Поиск
     if (searchTerm) {
-      filtered = filtered.filter(req => 
+      filtered = filtered.filter(req =>
         req.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
         req.device.toLowerCase().includes(searchTerm.toLowerCase()) ||
         req.request_id.toString().includes(searchTerm)
@@ -119,7 +87,7 @@ export default function RequestsList({ onRefresh }) {
         const reqDate = new Date(req.date_received);
         const diffTime = Math.abs(today - reqDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         switch (dateFilter) {
           case "today":
             return diffDays <= 1;
@@ -197,7 +165,7 @@ export default function RequestsList({ onRefresh }) {
               <p className="text-gray-600">Управление и отслеживание заявок</p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <button
               onClick={fetchRequests}
@@ -207,7 +175,7 @@ export default function RequestsList({ onRefresh }) {
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               <span>Обновить</span>
             </button>
-            
+
             <div className="text-right">
               <p className="text-2xl font-bold text-gray-900">{filteredRequests.length}</p>
               <p className="text-sm text-gray-600">из {requests.length} заявок</p>
@@ -230,7 +198,7 @@ export default function RequestsList({ onRefresh }) {
               className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
             />
           </div>
-          
+
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 font-medium ${
@@ -332,8 +300,8 @@ export default function RequestsList({ onRefresh }) {
             {requests.length === 0 ? 'Нет заявок' : 'Заявки не найдены'}
           </h3>
           <p className="text-gray-600">
-            {requests.length === 0 
-              ? 'Заявки появятся здесь после создания' 
+            {requests.length === 0
+              ? 'Заявки появятся здесь после создания'
               : 'Попробуйте изменить параметры поиска или фильтры'
             }
           </p>
@@ -398,12 +366,6 @@ export default function RequestsList({ onRefresh }) {
                       <span>Статус</span>
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                    <div className="flex items-center space-x-2">
-                      <User className="w-4 h-4 text-gray-500" />
-                      <span>Действия</span>
-                    </div>
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -440,27 +402,6 @@ export default function RequestsList({ onRefresh }) {
                         {getStatusIcon(req.status)}
                         <span className="ml-2">{req.status}</span>
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {req.status === 'На согласование(покрасочная)' && (
-                        <button
-                          onClick={() => handleTakeToWork(req.request_id)}
-                          disabled={processingRequests.has(req.request_id)}
-                          className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
-                        >
-                          {processingRequests.has(req.request_id) ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>Обработка...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4" />
-                              <span>Взять в работу</span>
-                            </>
-                          )}
-                        </button>
-                      )}
                     </td>
                   </tr>
                 ))}
@@ -506,7 +447,7 @@ export default function RequestsList({ onRefresh }) {
                         <p className="text-sm font-medium text-gray-900">{req.device}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <Package className="w-4 h-4 text-gray-500" />
                       <div>
@@ -524,7 +465,7 @@ export default function RequestsList({ onRefresh }) {
                         <p className="text-sm text-gray-700">{req.date_received}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <Clock className="w-4 h-4 text-gray-500" />
                       <div>
@@ -533,29 +474,6 @@ export default function RequestsList({ onRefresh }) {
                       </div>
                     </div>
                   </div>
-
-                  {/* Action Button */}
-                  {req.status === 'На согласование(покрасочная)' && (
-                    <div className="mt-4 pt-3 border-t border-gray-200">
-                      <button
-                        onClick={() => handleTakeToWork(req.request_id)}
-                        disabled={processingRequests.has(req.request_id)}
-                        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
-                      >
-                        {processingRequests.has(req.request_id) ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Обработка...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-4 h-4" />
-                            <span>Взять в работу</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

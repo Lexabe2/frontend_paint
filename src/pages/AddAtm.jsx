@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import { CreditCard, Calendar, Package, Hash, Scan, RefreshCw, Plus, AlertCircle } from "lucide-react";
+import {CreditCard, Calendar, Package, Hash, Scan, RefreshCw, Plus, AlertCircle} from "lucide-react";
 import api from "../api/axios";
 import ScannerInput from "../components/Skaner"
 
@@ -53,6 +53,7 @@ export default function AddAtm({onSuccess}) {
             );
 
             resetForm();
+            await fetchAtms();
             if (onSuccess) onSuccess(res.data);
         } catch (error) {
             console.error("Ошибка при создании ATM:", error);
@@ -66,22 +67,23 @@ export default function AddAtm({onSuccess}) {
         }
     };
 
-    useEffect(() => {
-        const fetchAtms = async () => {
-            try {
-                const res = await api.get("/atms/raw_create/", {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-                        "Content-Type": "application/json",
-                    },
-                });
-                setPalletNumber(res.data.pallet);
-                setModelList(res.data.model)
-            } catch (err) {
-                console.error("Ошибка при загрузке:", err);
-            }
-        };
+    const fetchAtms = async () => {
+        try {
+            const res = await api.get("/atms/raw_create/", {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+                    "Content-Type": "application/json",
+                },
+            });
+            setPalletNumber(res.data.pallet);
+            setModelList(res.data.model);
+        } catch (err) {
+            console.error("Ошибка при загрузке:", err);
+        }
+    };
 
+// Внутри useEffect
+    useEffect(() => {
         fetchAtms();
     }, []);
 
@@ -89,8 +91,9 @@ export default function AddAtm({onSuccess}) {
         <div className="max-w-2xl mx-auto p-8">
             {/* Header */}
             <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
-                    <CreditCard className="w-8 h-8 text-white" />
+                <div
+                    className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
+                    <CreditCard className="w-8 h-8 text-white"/>
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">Добавить банкомат</h2>
                 <p className="text-gray-600">Заполните информацию о новом устройстве</p>
@@ -103,7 +106,7 @@ export default function AddAtm({onSuccess}) {
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                                <Scan className="w-5 h-5 text-blue-600" />
+                                <Scan className="w-5 h-5 text-blue-600"/>
                             </div>
                             <div>
                                 <h3 className="font-semibold text-gray-900">Сканирование серийного номера</h3>
@@ -135,7 +138,7 @@ export default function AddAtm({onSuccess}) {
                     {/* Error Message */}
                     {error && (
                         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
-                            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0"/>
                             <div>
                                 <h4 className="font-medium text-red-800">Ошибка</h4>
                                 <p className="text-red-700 text-sm mt-1">{error}</p>
@@ -147,7 +150,7 @@ export default function AddAtm({onSuccess}) {
                         {/* Serial Number */}
                         <div className="space-y-2">
                             <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
-                                <Hash className="w-4 h-4 text-gray-500" />
+                                <Hash className="w-4 h-4 text-gray-500"/>
                                 <span>Серийный номер *</span>
                             </label>
                             <div className="relative">
@@ -160,7 +163,7 @@ export default function AddAtm({onSuccess}) {
                                     required
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                    <Hash className="w-4 h-4 text-gray-400" />
+                                    <Hash className="w-4 h-4 text-gray-400"/>
                                 </div>
                             </div>
                         </div>
@@ -168,7 +171,7 @@ export default function AddAtm({onSuccess}) {
                         {/* Model Selection */}
                         <div className="space-y-2">
                             <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
-                                <CreditCard className="w-4 h-4 text-gray-500" />
+                                <CreditCard className="w-4 h-4 text-gray-500"/>
                                 <span>Модель *</span>
                             </label>
                             <div className="relative">
@@ -185,8 +188,10 @@ export default function AddAtm({onSuccess}) {
                                     <option value="__new__">Другая модель...</option>
                                 </select>
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                         viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                              d="M19 9l-7 7-7-7"/>
                                     </svg>
                                 </div>
                             </div>
@@ -207,13 +212,14 @@ export default function AddAtm({onSuccess}) {
                         {/* Pallet Info */}
                         <div className="space-y-2">
                             <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
-                                <Package className="w-4 h-4 text-gray-500" />
+                                <Package className="w-4 h-4 text-gray-500"/>
                                 <span>Паллет</span>
                             </label>
-                            <div className="px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+                            <div
+                                className="px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
                                 <div className="flex items-center space-x-3">
                                     <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                                        <Package className="w-4 h-4 text-green-600" />
+                                        <Package className="w-4 h-4 text-green-600"/>
                                     </div>
                                     <div>
                                         <p className="font-semibold text-green-800">PP{palletNumber}</p>
@@ -226,7 +232,7 @@ export default function AddAtm({onSuccess}) {
                         {/* Date */}
                         <div className="space-y-2">
                             <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
-                                <Calendar className="w-4 h-4 text-gray-500" />
+                                <Calendar className="w-4 h-4 text-gray-500"/>
                                 <span>Дата приёмки *</span>
                             </label>
                             <div className="relative">
@@ -238,7 +244,7 @@ export default function AddAtm({onSuccess}) {
                                     required
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                    <Calendar className="w-4 h-4 text-gray-400"/>
                                 </div>
                             </div>
                         </div>
@@ -252,12 +258,12 @@ export default function AddAtm({onSuccess}) {
                             >
                                 {loading ? (
                                     <>
-                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        <RefreshCw className="w-4 h-4 animate-spin"/>
                                         <span>Сохранение...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Plus className="w-4 h-4" />
+                                        <Plus className="w-4 h-4"/>
                                         <span>Добавить банкомат</span>
                                     </>
                                 )}
