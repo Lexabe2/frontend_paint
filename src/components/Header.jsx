@@ -797,7 +797,7 @@ export default function ResponsiveHeader() {
             )}
 
             {/* Spacers */}
-            <div className={`${isMobile ? "h-20" : "h-16"}`}></div>
+            <div className={`${isMobile ? "h-0" : "h-16"}`}></div>
             {isMobile && <div className="h-20"></div>}
         </>
     )

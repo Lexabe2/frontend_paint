@@ -4,7 +4,7 @@ import {useEffect, useState} from "react"
 import {useNavigate} from "react-router-dom"
 import api from "../api/axios"
 
-const CreatedRequestsTable = ( {status} ) => {
+const CreatedRequestsTable = ({status, sc}) => {
     const [requests, setRequests] = useState([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
@@ -35,7 +35,11 @@ const CreatedRequestsTable = ( {status} ) => {
 
         try {
             // переходим на другую страницу
-            navigate(`/requests/${requestId}/receive`)
+            if (sc === 'Покрасочная') {
+                navigate(`/requests/${requestId}/receive`)
+            } else {
+                navigate(`/requests/${requestId}/broadcast`) // запасной маршрут
+            }
         } catch (error) {
             console.error("Ошибка при оприходовании заявки:", error)
             alert("Не удалось оприходовать заявку")

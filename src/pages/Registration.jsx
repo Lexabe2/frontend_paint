@@ -9,6 +9,7 @@ export default function Registration() {
 
     const title = group === "warehouse" ? "Передача в покраску" : "Приемка в покраску";
     const status = group === "warehouse" ? "Заявка принята(покрасочная)" : "Готова к передачи в покраску";
+    const sc = group === "warehouse" ? "Склад" : "Покрасочная";
 
     return (
         <div className="min-h-screen from-slate-50 via-blue-50/30 to-indigo-100/50 relative overflow-hidden">
@@ -74,7 +75,7 @@ export default function Registration() {
                     </div>
 
                     <div className="relative p-4 sm:p-8">
-                        <CreatedRequestsTable status={status}/>
+                        <CreatedRequestsTable status={status} sc={sc}/>
                     </div>
                 </div>
             </div>
