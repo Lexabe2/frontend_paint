@@ -123,7 +123,6 @@ function LoadingAnimation({ stage }) {
 }
 
 export default function SearchPage() {
-  const [query, setQuery] = useState("")
   const [result, setResult] = useState(null)
   const [error, setError] = useState("")
   const [scannedDevices, setScannedDevices] = useState([])
