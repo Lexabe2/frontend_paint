@@ -7,7 +7,8 @@ import {
     FolderPlus,
     CreditCard,
     ClipboardIcon,
-    FileWarning
+    FileWarning,
+    SprayCan
 } from "lucide-react"
 
 export const navigationGroups = {
@@ -105,6 +106,15 @@ export const navigationGroups = {
                 category: 'painting'
             },
             {
+                id: "painting",
+                label: "Покраска",
+                icon: SprayCan,
+                color: "from-green-500 to-emerald-500",
+                permission: "painting",
+                path: "/painting?work=paint",
+                category: 'painting'
+            },
+            {
                 id: "atm",
                 label: "Устройства",
                 icon: CreditCard,
@@ -131,6 +141,7 @@ const allPermissions = Object.values(navigationGroups)
 
 export const rolePermissions = {
     admin: allPermissions, // админ видит всё
-    admin_paint: ["dashboard", "application", "registration", "atm", "complaints"],
-    storekeeper: ["signing", "viewing_req", "registration_transfer_war", "registration_receive_war"]
+    admin_paint: ["application", "registration", "atm", "complaints"],
+    storekeeper: ["signing", "viewing_req", "registration_transfer_war", "registration_receive_war"],
+    moderator: ['complaints', 'viewing_req', 'registration_transfer_war', 'registration_receive_war'],
 }

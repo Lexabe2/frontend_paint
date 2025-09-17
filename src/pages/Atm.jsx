@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Scan, WifiOff, Download, CheckCircle, AlertTriangle } from "lucide-react"
+import { Search, WifiOff, Download, CheckCircle, AlertTriangle } from "lucide-react"
 import api from "../api/axios"
 import TableSearchATM from "../components/TableSearchATM"
 import ScannerInput from "../components/Skaner"

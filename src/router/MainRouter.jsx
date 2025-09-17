@@ -14,6 +14,8 @@ import AddAtm from '../pages/AddAtm.jsx';
 import WarehouseAtms from '../pages/WarehouseAtms.jsx'
 import RequestsList from '../pages/RequestsList.jsx';
 import BroadcastPaint from '../pages/BroadcastPaint.jsx'
+import Painting from '../pages/Painting';
+import Work from '../pages/WorkManager.jsx';
 import Layout from '../layouts/Layout';
 
 export default function MainRouter() {
@@ -42,6 +44,8 @@ export default function MainRouter() {
         <Route path="/warehouse_atms" element={<WarehouseAtms />} />
         <Route path="/viewing_req" element={<RequestsList />} />
         <Route path="/requests/:id/broadcast" element={<BroadcastPaint />} />
+        <Route path="/painting/" element={<Painting />} />
+        <Route path="/work/" element={<Work />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 
