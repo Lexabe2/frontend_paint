@@ -1,7 +1,8 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {CreditCard, Calendar, Package, Hash, Scan, RefreshCw, Plus, AlertCircle} from "lucide-react";
 import api from "../api/axios";
 import ScannerInput from "../components/Skaner"
+import PhotoCapture from "../components/PhotoCapture.jsx";
 
 export default function AddAtm({onSuccess}) {
     const [serialNumber, setSerialNumber] = useState("");
@@ -13,6 +14,8 @@ export default function AddAtm({onSuccess}) {
     const [palletNumber, setPalletNumber] = useState(null);
     const [modelList, setModelList] = useState([]);
     const [showScanner, setShowScanner] = useState(false);
+    const [photoData, setPhotoData] = useState({photos: [], comment: ""});
+
 
     const resetForm = () => {
         setSerialNumber("");
@@ -38,18 +41,15 @@ export default function AddAtm({onSuccess}) {
                 pallet: palletNumber,
                 model: model.trim(),
                 accepted_at: acceptedAt,
+                photos: photoData.photos,
+                comment: photoData.comment
             };
             if (requestId.trim()) payload.request_id = requestId.trim();
 
             const res = await api.post(
                 "/atms/raw_create/",
                 payload,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-                        "Content-Type": "application/json",
-                    },
-                }
+                {}
             );
 
             resetForm();
@@ -90,6 +90,11 @@ export default function AddAtm({onSuccess}) {
     return (
         <div className="max-w-2xl mx-auto p-8">
             {/* Header */}
+            <PhotoCapture
+                onSave={(data) => {
+                    setPhotoData(data); // Сохраняем в состояние
+                }}
+            />
             <div className="text-center mb-8">
                 <div
                     className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
