@@ -179,7 +179,6 @@ export default function Dashboard() {
         <div className="min-l-screen from-slate-50 via-blue-50 to-indigo-50">
             <PhotoCapture
                 onSave={setPhotos}
-                label="📸"
                 className="fixed bottom-6 right-6 z-50"
             />
             <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-8">
