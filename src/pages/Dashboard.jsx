@@ -23,7 +23,7 @@ export default function Dashboard() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [photos, setPhotos] = useState([]);
+    const [photoData, setPhotoData] = useState({photos: [], comment: ""});
 
     // правила доступа
     const accessRules = {
@@ -178,8 +178,10 @@ export default function Dashboard() {
     return (
         <div className="min-l-screen from-slate-50 via-blue-50 to-indigo-50">
             <PhotoCapture
-                onSave={setPhotos}
-                className="fixed bottom-6 right-6 z-50"
+                onSave={(data) => {
+                    console.log("Данные из PhotoCapture:", data);
+                    setPhotoData(data); // Сохраняем в состояние
+                }}
             />
             <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-8">
                 {/* Header */}
