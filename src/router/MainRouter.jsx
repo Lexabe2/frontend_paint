@@ -16,6 +16,7 @@ import RequestsList from '../pages/RequestsList.jsx';
 import BroadcastPaint from '../pages/BroadcastPaint.jsx'
 import Painting from '../pages/Painting';
 import Work from '../pages/WorkManager.jsx';
+import Warehouse from '../pages/Warehouse.jsx';
 import Layout from '../layouts/Layout';
 
 export default function MainRouter() {
@@ -46,6 +47,7 @@ export default function MainRouter() {
         <Route path="/requests/:id/broadcast" element={<BroadcastPaint />} />
         <Route path="/painting/" element={<Painting />} />
         <Route path="/work/" element={<Work />} />
+        <Route path="/warehouse/" element={<Warehouse />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 

@@ -8,7 +8,8 @@ import {
     CreditCard,
     ClipboardIcon,
     FileWarning,
-    SprayCan
+    SprayCan,
+    Warehouse
 } from "lucide-react"
 
 export const navigationGroups = {
@@ -24,6 +25,15 @@ export const navigationGroups = {
                 color: "from-blue-500 to-cyan-500",
                 permission: "dashboard",
                 path: "/dashboard",
+                category: 'warehouse'
+            },
+            {
+                id: "warehouse",
+                label: "Хранение",
+                icon: Warehouse,
+                color: "from-green-500 to-emerald-500",
+                permission: "registration_receive_war",
+                path: "/warehouse",
                 category: 'warehouse'
             },
             {
@@ -142,6 +152,6 @@ const allPermissions = Object.values(navigationGroups)
 export const rolePermissions = {
     admin: allPermissions, // админ видит всё
     admin_paint: ["application", "registration", "atm", "complaints"],
-    storekeeper: ["signing", "viewing_req", "registration_transfer_war", "registration_receive_war"],
+    storekeeper: ["signing", "warehouse", "viewing_req", "registration_transfer_war", "registration_receive_war"],
     moderator: ['complaints', 'viewing_req', 'registration_transfer_war', 'registration_receive_war'],
 }

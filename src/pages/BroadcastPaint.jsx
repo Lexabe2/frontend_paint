@@ -1,9 +1,10 @@
 "use client"
 
-import {useEffect, useState, useRef, useCallback} from "react"
+import React, {useEffect, useState, useRef, useCallback} from "react"
 import ScannerInput from "../components/Skaner"
 import {useParams} from "react-router-dom"
 import api from "../api/axios.js"
+import PhotoCapture from "../components/PhotoCapture.jsx";
 import {
     CheckCircle,
     AlertCircle,
@@ -33,6 +34,7 @@ export default function ScannerPage() {
     const startY = useRef(0)
     const currentY = useRef(0)
     const isDragging = useRef(false)
+    const [photoData, setPhotoData] = useState({photos: [], comment: ""});
 
     // Загружаем заявку
     const fetchCreatedRequests = async () => {
@@ -152,8 +154,8 @@ export default function ScannerPage() {
         try {
             setLoading(true)
             setScanningMode(true)
-            const res = await api.post("/atm_for_paint/", {sn: code, request_id: id})
-
+            const res = await api.post("/atm_for_paint/", {sn: code, request_id: id, photos: photoData.photos,
+                comment: photoData.comment})
             if (res.data.error) {
                 setError(res.data.error)
             } else {
@@ -244,6 +246,11 @@ export default function ScannerPage() {
 
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Header */}
+                <PhotoCapture
+                    onSave={(data) => {
+                        setPhotoData(data); // Сохраняем в состояние
+                    }}
+                />
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                         <button

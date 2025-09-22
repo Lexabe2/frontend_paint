@@ -1,6 +1,6 @@
 "use client"
 
-import {useEffect, useState} from "react"
+import React, {useEffect, useState} from "react"
 import {
     Package,
     ChevronDown,
@@ -17,6 +17,7 @@ import api from "../api/axios"
 import ScannerInput from "../components/Skaner"
 import Toast from "../components/toast"
 import {useNavigate} from "react-router-dom"
+import PhotoCapture from "../components/PhotoCapture.jsx";
 
 const RegistrationWork = () => {
     const {id} = useParams()
@@ -32,6 +33,7 @@ const RegistrationWork = () => {
     const [redirectProgress, setRedirectProgress] = useState(0)
     const [toast, setToast] = useState(null)
     const [Atm, setAtm] = useState([])
+    const [photoData, setPhotoData] = useState({photos: [], comment: ""});
 
     const storageKey = `scanned_devices_${id}`
 
@@ -185,6 +187,8 @@ const RegistrationWork = () => {
         try {
             const payload = {
                 requestId: id,
+                photos: photoData.photos,
+                comment: photoData.comment,
                 devices: scannedDevices.map((device) => ({
                     atm: device.code,
                 })),
@@ -265,6 +269,11 @@ const RegistrationWork = () => {
 
     return (
         <div className="min-l-screen from-slate-50 via-violet-50/30 to-indigo-50 pb-20 relative">
+            <PhotoCapture
+                onSave={(data) => {
+                    setPhotoData(data); // Сохраняем в состояние
+                }}
+            />
             {/* Toast */}
             {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast}/>}
 

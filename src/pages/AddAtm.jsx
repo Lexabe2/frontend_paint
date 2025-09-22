@@ -53,6 +53,7 @@ export default function AddAtm({onSuccess}) {
             );
 
             resetForm();
+            setPhotoData({ photos: [], comment: "" });
             await fetchAtms();
             if (onSuccess) onSuccess(res.data);
         } catch (error) {
