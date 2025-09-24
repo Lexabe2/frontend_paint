@@ -271,7 +271,7 @@ export default function AddAtm({onSuccess}) {
 
                         </div>
                         <PhotoCapture
-                            key={resetKey}  // меняем key при сбросе
+                            key={resetKey}
                             onSave={(data) => setPhotoData(data)}
                             status={'Принят на склад'}
                             sn={serialNumber}
