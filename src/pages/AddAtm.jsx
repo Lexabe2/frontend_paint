@@ -48,6 +48,7 @@ export default function AddAtm({onSuccess}) {
             const size = getBase64Size(photoData.photos[i].data);
             if (size > maxSize) {
                 setError(`Фото №${i + 1} слишком большое (${(size / 1024 / 1024).toFixed(2)} MB). Макс: 5 MB`);
+                alert(`Фото №${i + 1} слишком большое (${(size / 1024 / 1024).toFixed(2)} MB). Макс: 5 MB`)
                 return;
             }
         }
