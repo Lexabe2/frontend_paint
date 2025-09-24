@@ -26,6 +26,13 @@ export default function AddAtm({onSuccess}) {
         setError("");
     };
 
+    function getBase64Size(base64String) {
+        let padding = 0;
+        if (base64String.endsWith("==")) padding = 2;
+        else if (base64String.endsWith("=")) padding = 1;
+        return (base64String.length * 3) / 4 - padding; // размер в байтах
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
@@ -33,6 +40,16 @@ export default function AddAtm({onSuccess}) {
         if (!serialNumber.trim() || !model.trim() || !acceptedAt) {
             setError("Поля серийный номер, модель и дата обязательны.");
             return;
+        }
+
+        // 🔍 проверка размера фото
+        const maxSize = 5 * 1024 * 1024; // 5 MB
+        for (let i = 0; i < photoData.photos.length; i++) {
+            const size = getBase64Size(photoData.photos[i].data);
+            if (size > maxSize) {
+                setError(`Фото №${i + 1} слишком большое (${(size / 1024 / 1024).toFixed(2)} MB). Макс: 5 MB`);
+                return;
+            }
         }
 
         setLoading(true);
@@ -47,16 +64,11 @@ export default function AddAtm({onSuccess}) {
             };
             if (requestId.trim()) payload.request_id = requestId.trim();
 
-            const res = await api.post(
-                "/atms/raw_create/",
-                payload,
-                {}
-            );
+            const res = await api.post("/atms/raw_create/", payload);
 
             resetForm();
             setPhotoData({photos: [], comment: ""});
             setResetKey(prev => prev + 1);
-            setPhotoData({photos: [], comment: ""});
             await fetchAtms();
             if (onSuccess) onSuccess(res.data);
         } catch (error) {
