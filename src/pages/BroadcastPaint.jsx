@@ -17,6 +17,7 @@ import {
     Target,
     Zap
 } from "lucide-react"
+import PhotoModal from "../components/PhotoModal.jsx";
 
 export default function ScannerPage() {
     const [lastScan, setLastScan] = useState(null)
@@ -154,8 +155,10 @@ export default function ScannerPage() {
         try {
             setLoading(true)
             setScanningMode(true)
-            const res = await api.post("/atm_for_paint/", {sn: code, request_id: id, photos: photoData.photos,
-                comment: photoData.comment})
+            const res = await api.post("/atm_for_paint/", {
+                sn: code, request_id: id, photos: photoData.photos,
+                comment: photoData.comment
+            })
             if (res.data.error) {
                 setError(res.data.error)
             } else {
@@ -246,11 +249,6 @@ export default function ScannerPage() {
 
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Header */}
-                <PhotoCapture
-                    onSave={(data) => {
-                        setPhotoData(data); // Сохраняем в состояние
-                    }}
-                />
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                         <button
@@ -470,35 +468,49 @@ export default function ScannerPage() {
                                 {Atm.map((atm, index) => (
                                     <div
                                         key={atm.id}
-                                        className="bg-gray-50 rounded-xl p-4 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200 animate-in slide-in-from-left-5"
-                                        style={{animationDelay: `${index * 50}ms`}}
+                                        className="bg-white rounded-2xl p-4 shadow-md hover:shadow-lg transition-all duration-200 animate-in slide-in-from-left-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+                                        style={{animationDelay: `${index * 70}ms`}}
                                     >
-                                        <div className="flex items-center space-x-4">
+                                        {/* Верхняя часть (иконка + инфо) */}
+                                        <div className="flex items-start sm:items-center gap-3">
                                             <div
-                                                className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-sm">
+                                                className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-inner">
                                                 {index + 1}
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">
-                                                    Модель: <span className="text-blue-600">{atm.model}</span>
-                                                </p>
-                                                <p className="text-sm text-gray-600">
-                                                    S/N: <span className="font-mono">{atm.serial_number}</span>
-                                                </p>
+                                            <div className="flex flex-col min-w-0">
+      <span className="font-semibold text-gray-900 text-base leading-tight truncate">
+        Модель: <span className="text-blue-600">{atm.model}</span>
+      </span>
+                                                <span className="text-sm text-gray-500 font-mono truncate">
+        S/N: {atm.serial_number}
+      </span>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleDeleteAtm(atm.serial_number)}
-                                            disabled={deletingAtm === atm.serial_number}
-                                            className="flex items-center space-x-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 hover:border-red-300"
-                                        >
-                                            {deletingAtm === atm.serial_number ? (
-                                                <RefreshCw className="w-4 h-4 animate-spin"/>
-                                            ) : (
-                                                <Trash2 className="w-4 h-4"/>
-                                            )}
-                                            <span className="text-sm font-medium">Удалить</span>
-                                        </button>
+
+                                        {/* Нижняя часть (кнопки) */}
+                                        <div className="flex items-center justify-end gap-2 sm:gap-3">
+                                            <button
+                                                onClick={() => handleDeleteAtm(atm.serial_number)}
+                                                disabled={deletingAtm === atm.serial_number}
+                                                className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                                            >
+                                                {deletingAtm === atm.serial_number ? (
+                                                    <RefreshCw className="w-5 h-5 animate-spin"/>
+                                                ) : (
+                                                    <Trash2 className="w-5 h-5"/>
+                                                )}
+                                                <span className="hidden sm:inline text-sm font-medium">Удалить</span>
+                                            </button>
+
+                                            <PhotoCapture
+                                                onSave={(data) => setPhotoData(data)}
+                                                status="Отгрузка в покрасочную"
+                                                sn={atm.serial_number}
+                                                bt="True"
+                                            />
+
+                                            <PhotoModal atmId={atm.serial_number}/>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

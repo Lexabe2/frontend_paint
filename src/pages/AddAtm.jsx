@@ -15,6 +15,7 @@ export default function AddAtm({onSuccess}) {
     const [modelList, setModelList] = useState([]);
     const [showScanner, setShowScanner] = useState(false);
     const [photoData, setPhotoData] = useState({photos: [], comment: ""});
+    const [resetKey, setResetKey] = useState(0);
 
 
     const resetForm = () => {
@@ -53,7 +54,9 @@ export default function AddAtm({onSuccess}) {
             );
 
             resetForm();
-            setPhotoData({ photos: [], comment: "" });
+            setPhotoData({photos: [], comment: ""});
+            setResetKey(prev => prev + 1);
+            setPhotoData({photos: [], comment: ""});
             await fetchAtms();
             if (onSuccess) onSuccess(res.data);
         } catch (error) {
@@ -79,7 +82,24 @@ export default function AddAtm({onSuccess}) {
             setPalletNumber(res.data.pallet);
             setModelList(res.data.model);
         } catch (err) {
-            console.error("Ошибка при загрузке:", err);
+            if (err.response && err.response.data) {
+                const data = err.response.data;
+                // Если это объект с ключом detail или error
+                if (typeof data === "object") {
+                    if (data.detail) {
+                        alert(`Ошибка: ${data.detail}`);
+                    } else if (data.error) {
+                        alert(`Ошибка: ${data.error}`);
+                    } else {
+                        alert("Произошла неизвестная ошибка на сервере");
+                    }
+                } else {
+                    // Если сервер вернул plain text
+                    alert(`Ошибка: ${data}`);
+                }
+            } else {
+                alert("Не удалось соединиться с сервером");
+            }
         }
     };
 
@@ -91,11 +111,6 @@ export default function AddAtm({onSuccess}) {
     return (
         <div className="max-w-2xl mx-auto p-8">
             {/* Header */}
-            <PhotoCapture
-                onSave={(data) => {
-                    setPhotoData(data); // Сохраняем в состояние
-                }}
-            />
             <div className="text-center mb-8">
                 <div
                     className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
@@ -253,7 +268,15 @@ export default function AddAtm({onSuccess}) {
                                     <Calendar className="w-4 h-4 text-gray-400"/>
                                 </div>
                             </div>
+
                         </div>
+                        <PhotoCapture
+                            key={resetKey}  // меняем key при сбросе
+                            onSave={(data) => setPhotoData(data)}
+                            status={'Принят на склад'}
+                            sn={serialNumber}
+                            bt={'False'}
+                        />
 
                         {/* Action Buttons */}
                         <div className="flex gap-4 pt-6">
