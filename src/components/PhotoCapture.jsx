@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Trash2, Camera, X, Image, MessageCircle, Upload, Check, AlertCircle, Loader } from "lucide-react";
 import api from "../api/axios";
 
-export default function PhotoCapture({ onSave, status, sn, bt, mode }) {
+export default function PhotoCapture({ onSave, status, sn, bt}) {
   const [photos, setPhotos] = useState([]);
   const [showGallery, setShowGallery] = useState(false);
   const [comment, setComment] = useState("");
