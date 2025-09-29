@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {CreditCard, Calendar, Package, Hash, Scan, RefreshCw, Plus, AlertCircle} from "lucide-react";
+import {CreditCard, Calendar, Package, Hash, Scan, RefreshCw, Plus, AlertCircle, Paintbrush} from "lucide-react";
 import api from "../api/axios";
 import ScannerInput from "../components/Skaner"
 import PhotoCapture from "../components/PhotoCapture.jsx";
@@ -16,6 +16,7 @@ export default function AddAtm({onSuccess}) {
     const [showScanner, setShowScanner] = useState(false);
     const [photoData, setPhotoData] = useState({photos: [], comment: ""});
     const [resetKey, setResetKey] = useState(0);
+    const [activeTab, setActiveTab] = useState("new"); // строка без <...>
 
 
     const resetForm = () => {
@@ -61,7 +62,8 @@ export default function AddAtm({onSuccess}) {
                 model: model.trim(),
                 accepted_at: acceptedAt,
                 photos: photoData.photos,
-                comment: photoData.comment
+                comment: photoData.comment,
+                reception: activeTab
             };
             if (requestId.trim()) payload.request_id = requestId.trim();
 
@@ -180,6 +182,33 @@ export default function AddAtm({onSuccess}) {
                         </div>
                     )}
 
+                    {/* Tab bar */}
+                    <div className="flex border-b border-gray-200 mb-5">
+                        <button
+                            onClick={() => setActiveTab("new")}
+                            className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors
+      ${activeTab === "new"
+                                ? "text-white bg-green-500 rounded-t-xl border-b-0"
+                                : "text-gray-500 hover:text-gray-700 bg-gray-100"}
+    `}
+                        >
+                            <Package className="w-4 h-4"/>
+                            Новый
+                        </button>
+
+                        <button
+                            onClick={() => setActiveTab("paint")}
+                            className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors
+      ${activeTab === "paint"
+                                ? "text-white bg-red-500 rounded-t-xl border-b-0"
+                                : "text-gray-500 hover:text-gray-700 bg-gray-100"}
+    `}
+                        >
+                            <Paintbrush className="w-4 h-4"/>
+                            С покраски
+                        </button>
+                    </div>
+
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Serial Number */}
                         <div className="space-y-2">
@@ -219,7 +248,6 @@ export default function AddAtm({onSuccess}) {
                                     {modelList.map((m, idx) => (
                                         <option key={idx} value={m}>{m}</option>
                                     ))}
-                                    <option value="__new__">Другая модель...</option>
                                 </select>
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
@@ -229,18 +257,6 @@ export default function AddAtm({onSuccess}) {
                                     </svg>
                                 </div>
                             </div>
-
-                            {model === "__new__" && (
-                                <div className="mt-3">
-                                    <input
-                                        type="text"
-                                        placeholder="Введите новую модель"
-                                        value=""
-                                        onChange={(e) => setModel(e.target.value)}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
-                                    />
-                                </div>
-                            )}
                         </div>
 
                         {/* Pallet Info */}
@@ -296,7 +312,12 @@ export default function AddAtm({onSuccess}) {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl"
+                                className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl text-white transition-all duration-200
+    ${activeTab === "new"
+                                    ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                                    : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                                } 
+    ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
                                 {loading ? (
                                     <>
@@ -306,7 +327,11 @@ export default function AddAtm({onSuccess}) {
                                 ) : (
                                     <>
                                         <Plus className="w-4 h-4"/>
-                                        <span>Добавить банкомат</span>
+                                        <span>
+        {activeTab === "new"
+            ? "Добавить новое устройство"
+            : "Принять с покраски"}
+      </span>
                                     </>
                                 )}
                             </button>
@@ -323,12 +348,6 @@ export default function AddAtm({onSuccess}) {
                 </div>
             </div>
 
-            {/* Help Text */}
-            <div className="mt-6 text-center">
-                <p className="text-sm text-gray-500">
-                    Поля отмеченные * обязательны для заполнения
-                </p>
-            </div>
         </div>
     );
 }

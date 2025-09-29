@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {X, Camera, Loader, ZoomIn, Download, FolderClock} from "lucide-react";
 import api from "../api/axios";
+import {createPortal} from "react-dom";
 
 export default function PhotoModal({atmId}) {
     const [open, setOpen] = useState(false);
@@ -72,7 +73,7 @@ export default function PhotoModal({atmId}) {
                 <span className="text-sm sm:text-base">История</span>
             </button>
 
-            {open && (
+            {open && createPortal(
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div
                         className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden relative transform transition-all duration-300">
@@ -188,7 +189,8 @@ export default function PhotoModal({atmId}) {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+    document.body // рендерим в body, а не в родителе
             )}
 
             {/* Full Size Photo Modal */}

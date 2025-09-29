@@ -1,7 +1,8 @@
 import {useState} from "react";
-import {Trash2, Camera, X, Image, MessageCircle, Upload, Check, AlertCircle, Loader} from "lucide-react";
+import {Trash2, Camera, X, Image, MessageCircle, Upload, Check, Loader} from "lucide-react";
 import api from "../api/axios";
 import imageCompression from "browser-image-compression";
+import {createPortal} from "react-dom";
 
 export default function PhotoCapture({onSave, status, sn, bt}) {
     const [photos, setPhotos] = useState([]);
@@ -246,141 +247,144 @@ export default function PhotoCapture({onSave, status, sn, bt}) {
             </div>
 
             {/* Галерея (открывается по клику) */}
-            {showGallery && photos.length > 0 && (
-                <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-2 sm:p-4">
+            {showGallery && photos.length > 0 &&
+                createPortal(
                     <div
-                        className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-8 duration-300 shadow-2xl">
-                        {/* Заголовок */}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-2 sm:p-4">
                         <div
-                            className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
-                            <div className="flex items-center space-x-2">
-                                <div className="p-1.5 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg">
-                                    <Image className="w-4 h-4 text-blue-600"/>
-                                </div>
-                                <div>
-                                    <h3 className="text-base font-bold text-gray-900">Фото к {sn}</h3>
-                                    <p className="text-xs text-gray-500">
-                                        {photos.length} фотографий
-                                        {comment && <span className="ml-2 text-blue-600">• Есть комментарий</span>}
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={handleCloseGallery}
-                                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white/50 rounded-lg transition-all duration-200"
-                            >
-                                <X className="w-5 h-5"/>
-                            </button>
-                        </div>
-
-                        {/* Фото */}
-                        <div className="p-3 sm:p-4 overflow-y-auto max-h-[40vh]">
-                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                {photos.map((photo, index) => (
-                                    <div
-                                        key={photo.id}
-                                        className="relative group bg-gray-50 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-                                        onClick={() => setSelectedPhoto(photo)}
-                                    >
-                                        <img
-                                            src={photo.data}
-                                            alt={`Фото ${index + 1}`}
-                                            className="w-full h-20 sm:h-24 object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                        <div
-                                            className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                            <div className="absolute bottom-1 left-1 text-white">
-                                                <p className="text-xs font-medium">{index + 1}</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                removePhoto(index);
-                                            }}
-                                            className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg transform hover:scale-110"
-                                        >
-                                            <Trash2 className="w-2.5 h-2.5"/>
-                                        </button>
+                            className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-8 duration-300 shadow-2xl">
+                            {/* Заголовок */}
+                            <div
+                                className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
+                                <div className="flex items-center space-x-2">
+                                    <div className="p-1.5 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg">
+                                        <Image className="w-4 h-4 text-blue-600"/>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Комментарий и кнопки */}
-                        <div className="p-3 sm:p-4 border-t border-gray-100 bg-gray-50 space-y-3">
-                            <div>
-                                <label className="flex items-center space-x-2 text-xs font-medium text-gray-700 mb-2">
-                                    <MessageCircle className="w-3 h-3 text-blue-500"/>
-                                    <span>Комментарий</span>
-                                </label>
-                                <textarea
-                                    value={comment}
-                                    onChange={(e) => setComment(e.target.value)}
-                                    placeholder="Добавьте комментарий..."
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-sm bg-white"
-                                    rows={2}
-                                    maxLength={500}
-                                />
-                                {comment && <p className="mt-1 text-xs text-gray-500">{comment.length}/500</p>}
-                            </div>
-
-                            <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-base font-bold text-gray-900">Фото к {sn}</h3>
+                                        <p className="text-xs text-gray-500">
+                                            {photos.length} фотографий
+                                            {comment && <span className="ml-2 text-blue-600">• Есть комментарий</span>}
+                                        </p>
+                                    </div>
+                                </div>
                                 <button
-                                    onClick={clearAll}
-                                    disabled={uploading}
-                                    className="flex items-center space-x-1 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 disabled:opacity-50"
+                                    onClick={handleCloseGallery}
+                                    className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white/50 rounded-lg transition-all duration-200"
                                 >
-                                    <Trash2 className="w-3 h-3"/>
-                                    <span className="text-xs font-medium">Очистить</span>
+                                    <X className="w-5 h-5"/>
                                 </button>
+                            </div>
 
-                                {bt !== 'False' && !uploadSuccess && (
+                            {/* Фото */}
+                            <div className="p-3 sm:p-4 overflow-y-auto max-h-[40vh]">
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                    {photos.map((photo, index) => (
+                                        <div
+                                            key={photo.id}
+                                            className="relative group bg-gray-50 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+                                            onClick={() => setSelectedPhoto(photo)}
+                                        >
+                                            <img
+                                                src={photo.data}
+                                                alt={`Фото ${index + 1}`}
+                                                className="w-full h-20 sm:h-24 object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                            <div
+                                                className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                                <div className="absolute bottom-1 left-1 text-white">
+                                                    <p className="text-xs font-medium">{index + 1}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removePhoto(index);
+                                                }}
+                                                className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg transform hover:scale-110"
+                                            >
+                                                <Trash2 className="w-2.5 h-2.5"/>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Комментарий и кнопки */}
+                            <div className="p-3 sm:p-4 border-t border-gray-100 bg-gray-50 space-y-3">
+                                <div>
+                                    <label
+                                        className="flex items-center space-x-2 text-xs font-medium text-gray-700 mb-2">
+                                        <MessageCircle className="w-3 h-3 text-blue-500"/>
+                                        <span>Комментарий</span>
+                                    </label>
+                                    <textarea
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        placeholder="Добавьте комментарий..."
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-sm bg-white"
+                                        rows={2}
+                                        maxLength={500}
+                                    />
+                                    {comment && <p className="mt-1 text-xs text-gray-500">{comment.length}/500</p>}
+                                </div>
+
+                                <div className="flex items-center justify-between">
                                     <button
-                                        onClick={handleSave}
+                                        onClick={clearAll}
                                         disabled={uploading}
-                                        className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-200 font-medium ${
-                                            uploading
-                                                ? 'bg-gray-400 text-white cursor-not-allowed'
-                                                : 'bg-blue-500 text-white hover:bg-blue-600'
-                                        }`}
+                                        className="flex items-center space-x-1 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 disabled:opacity-50"
                                     >
-                                        {uploading ? (
-                                            <>
-                                                <Loader className="w-3 h-3 animate-spin"/>
-                                                <span className="text-xs">Загрузка...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Upload className="w-3 h-3"/>
-                                                <span className="text-xs">Сохранить</span>
-                                            </>
-                                        )}
+                                        <Trash2 className="w-3 h-3"/>
+                                        <span className="text-xs font-medium">Очистить</span>
                                     </button>
+
+                                    {bt !== 'False' && !uploadSuccess && (
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={uploading}
+                                            className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-200 font-medium ${
+                                                uploading
+                                                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                                            }`}
+                                        >
+                                            {uploading ? (
+                                                <>
+                                                    <Loader className="w-3 h-3 animate-spin"/>
+                                                    <span className="text-xs">Загрузка...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Upload className="w-3 h-3"/>
+                                                    <span className="text-xs">Сохранить</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Статус загрузки */}
+                                {uploading && (
+                                    <div
+                                        className="flex items-center justify-center space-x-2 text-xs text-gray-600 bg-blue-50 rounded-lg p-2">
+                                        <Loader className="w-3 h-3 animate-spin text-blue-500"/>
+                                        <span>Загружаем {photos.length} фотографий...</span>
+                                    </div>
+                                )}
+
+                                {uploadSuccess && (
+                                    <div
+                                        className="flex items-center justify-center space-x-2 text-xs text-green-700 bg-green-50 rounded-lg p-2">
+                                        <Check className="w-3 h-3 text-green-500"/>
+                                        <span>Фотографии отправлены успешно!</span>
+                                    </div>
                                 )}
                             </div>
-
-                            {/* Статус загрузки */}
-                            {uploading && (
-                                <div
-                                    className="flex items-center justify-center space-x-2 text-xs text-gray-600 bg-blue-50 rounded-lg p-2">
-                                    <Loader className="w-3 h-3 animate-spin text-blue-500"/>
-                                    <span>Загружаем {photos.length} фотографий...</span>
-                                </div>
-                            )}
-
-                            {uploadSuccess && (
-                                <div
-                                    className="flex items-center justify-center space-x-2 text-xs text-green-700 bg-green-50 rounded-lg p-2">
-                                    <Check className="w-3 h-3 text-green-500"/>
-                                    <span>Фотографии отправлены успешно!</span>
-                                </div>
-                            )}
                         </div>
-                    </div>
-                </div>
-            )}
+                    </div>,
+                    document.body // рендерим в body, а не в родителе
+                )}
 
             {/* Полноэкранный просмотр фото */}
             {selectedPhoto && (

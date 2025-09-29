@@ -6,11 +6,16 @@ import {
     ChevronDown,
     ChevronUp,
     Trash2,
-    Plus,
     Sparkles,
     Send,
     CheckCircle,
     ArrowRight,
+    QrCode,
+    AlertCircle,
+    Target,
+    Clock,
+    CheckCircle2,
+    X
 } from "lucide-react"
 import {useParams} from "react-router-dom"
 import api from "../api/axios"
@@ -18,6 +23,7 @@ import ScannerInput from "../components/Skaner"
 import Toast from "../components/toast"
 import {useNavigate} from "react-router-dom"
 import PhotoCapture from "../components/PhotoCapture.jsx";
+import PhotoModal from "../components/PhotoModal.jsx";
 
 const RegistrationWork = () => {
     const {id} = useParams()
@@ -25,7 +31,6 @@ const RegistrationWork = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
     const [isExpanded, setIsExpanded] = useState(false)
-    const [isExpandedAtm, setIsExpandedAtm] = useState(false)
     const [scannedDevices, setScannedDevices] = useState([])
     const navigate = useNavigate()
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -45,6 +50,7 @@ const RegistrationWork = () => {
         setToast(null)
     }
 
+    // Load saved devices from localStorage
     useEffect(() => {
         const savedDevices = localStorage.getItem(storageKey)
         if (savedDevices) {
@@ -56,12 +62,14 @@ const RegistrationWork = () => {
         }
     }, [storageKey])
 
+    // Save devices to localStorage
     useEffect(() => {
         if (scannedDevices.length > 0) {
             localStorage.setItem(storageKey, JSON.stringify(scannedDevices))
         }
     }, [scannedDevices, storageKey])
 
+    // Fetch request data
     useEffect(() => {
         const fetchRequest = async () => {
             setLoading(true)
@@ -83,6 +91,7 @@ const RegistrationWork = () => {
         }
     }, [id])
 
+    // Fetch ATM list
     const AtmForPaintList = async () => {
         setError("")
         setLoading(true)
@@ -101,25 +110,21 @@ const RegistrationWork = () => {
         AtmForPaintList()
     }, [])
 
-
     const handleNewScan = (code) => {
         if (!code.trim()) return
 
-        // Проверяем — дубликат среди уже добавленных
         const isDuplicate = scannedDevices.some((device) => device.code === code)
         if (isDuplicate) {
             showToast("Это устройство уже было добавлено!", "error")
             return
         }
 
-        // Проверяем — существует ли в списке банкоматов
         const existsInAtmList = Atm.some((item) => item.serial_number === code.trim())
         if (!existsInAtmList) {
             showToast("Такого ATM нет в заявке!", "error")
             return
         }
 
-        // Если всё ок — добавляем
         const newDevice = {
             id: Date.now(),
             code: code.trim(),
@@ -146,9 +151,7 @@ const RegistrationWork = () => {
 
     const animatedRedirect = () => {
         setIsRedirecting(true)
-
-        // Анимация прогресса
-        const duration = 2000 // 2 секунды
+        const duration = 1500
         const interval = 50
         const steps = duration / interval
         let currentStep = 0
@@ -171,10 +174,8 @@ const RegistrationWork = () => {
             return
         }
 
-        // Проверяем: все ли ATM добавлены
         const atmSerials = Atm.map((item) => item.serial_number)
         const scannedSerials = scannedDevices.map((device) => device.code)
-
         const notScanned = atmSerials.filter(serial => !scannedSerials.includes(serial))
 
         if (notScanned.length > 0) {
@@ -199,7 +200,6 @@ const RegistrationWork = () => {
             setScannedDevices([])
             localStorage.removeItem(storageKey)
 
-            // Запускаем анимированный редирект
             setTimeout(() => {
                 animatedRedirect()
             }, 1000)
@@ -213,20 +213,41 @@ const RegistrationWork = () => {
     }
 
     const getProgressPercentage = () => {
-        if (!request) return 0
-        return Math.min(Math.round((scannedDevices.length / request.quantity) * 100), 100)
+        if (!Atm.length) return 0
+        return Math.min(Math.round((scannedDevices.length / Atm.length) * 100), 100)
+    }
+
+    const getDeviceStatus = (serialNumber) => {
+        return scannedDevices.some(device => device.code === serialNumber) ? 'scanned' : 'pending'
+    }
+
+    const getRemainingDevices = () => {
+        const scannedSerials = scannedDevices.map(device => device.code)
+        return Atm.filter(atm => !scannedSerials.includes(atm.serial_number))
+    }
+
+    const isAllDevicesScanned = () => {
+        return Atm.length > 0 && scannedDevices.length === Atm.length
     }
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 p-3 pb-20">
-                <div className="max-w-2xl mx-auto space-y-4">
-                    <div className="h-8 bg-gradient-to-r from-slate-200 to-slate-300 rounded-xl animate-pulse"></div>
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-4 space-y-4">
-                        <div
-                            className="h-6 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg animate-pulse"></div>
-                        <div
-                            className="h-48 bg-gradient-to-br from-slate-200 to-slate-300 rounded-xl animate-pulse"></div>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 p-4 pb-20">
+                <div className="max-w-2xl mx-auto space-y-6">
+                    <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-slate-200/50 shadow-xl p-6">
+                        <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-violet-400 to-violet-600 rounded-2xl flex items-center justify-center animate-pulse">
+                                <Sparkles className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1 space-y-3">
+                                <div className="h-6 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg animate-pulse"></div>
+                                <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg animate-pulse w-3/4"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-slate-200/50 shadow-xl p-6">
+                        <div className="h-32 bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl animate-pulse"></div>
                     </div>
                 </div>
             </div>
@@ -235,16 +256,19 @@ const RegistrationWork = () => {
 
     if (error) {
         return (
-            <div
-                className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 flex items-center justify-center p-3 pb-20">
-                <div
-                    className="text-center bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-xl border border-rose-200/50 max-w-sm">
-                    <div
-                        className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-red-500 rounded-xl shadow-lg mb-4">
-                        <Package className="h-8 w-8 text-white"/>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 flex items-center justify-center p-4 pb-20">
+                <div className="text-center bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-rose-200/50 max-w-sm">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-red-500 rounded-2xl shadow-lg mb-6">
+                        <AlertCircle className="h-8 w-8 text-white"/>
                     </div>
-                    <h3 className="text-xl font-bold text-rose-900 mb-2">Ошибка загрузки</h3>
-                    <p className="text-rose-700">{error}</p>
+                    <h3 className="text-xl font-bold text-rose-900 mb-3">Ошибка загрузки</h3>
+                    <p className="text-rose-700 mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-medium transition-colors"
+                    >
+                        Обновить страницу
+                    </button>
                 </div>
             </div>
         )
@@ -252,15 +276,12 @@ const RegistrationWork = () => {
 
     if (!request) {
         return (
-            <div
-                className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 flex items-center justify-center p-3 pb-20">
-                <div
-                    className="text-center bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-xl border border-slate-200/50 max-w-sm">
-                    <div
-                        className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-slate-400 to-slate-500 rounded-xl shadow-lg mb-4">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 flex items-center justify-center p-4 pb-20">
+                <div className="text-center bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-200/50 max-w-sm">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-slate-400 to-slate-500 rounded-2xl shadow-lg mb-6">
                         <Package className="h-8 w-8 text-white"/>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">Заявка не найдена</h3>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3">Заявка не найдена</h3>
                     <p className="text-slate-600">Запрашиваемая заявка не существует</p>
                 </div>
             </div>
@@ -268,313 +289,322 @@ const RegistrationWork = () => {
     }
 
     return (
-        <div className="min-l-screen from-slate-50 via-violet-50/30 to-indigo-50 pb-20 relative">
-            <PhotoCapture
-                onSave={(data) => {
-                    setPhotoData(data); // Сохраняем в состояние
-                }}
-            />
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 pb-20 relative">
             {/* Toast */}
             {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast}/>}
 
-            {/* Анимированный оверлей редиректа */}
+            {/* Success Redirect Overlay */}
             {isRedirecting && (
-                <div
-                    className="fixed inset-0 z-50 bg-gradient-to-br from-violet-600/95 via-purple-600/95 to-indigo-600/95 backdrop-blur-xl flex items-center justify-center">
-                    {/* Декоративные элементы */}
-                    <div
-                        className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl animate-pulse"></div>
-                    <div
-                        className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-white/10 to-transparent rounded-full blur-3xl animate-pulse"
-                        style={{animationDelay: "1s"}}
-                    ></div>
-
+                <div className="fixed inset-0 z-50 bg-gradient-to-br from-emerald-600/95 via-teal-600/95 to-cyan-600/95 backdrop-blur-xl flex items-center justify-center">
                     <div className="text-center text-white max-w-sm mx-auto px-6">
-                        {/* Анимированная иконка успеха */}
-                        <div className="relative mb-8">
+                        <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto backdrop-blur-sm border border-white/30 shadow-2xl mb-6">
+                            <CheckCircle className="w-10 h-10 text-white"/>
+                        </div>
+
+                        <h2 className="text-2xl font-bold mb-2">Готово!</h2>
+                        <p className="text-white/80 mb-6">Данные успешно отправлены</p>
+
+                        <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm mb-4">
                             <div
-                                className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto backdrop-blur-sm border border-white/30 shadow-2xl">
-                                <CheckCircle className="w-12 h-12 text-white animate-pulse"/>
-                            </div>
-                            <div
-                                className="absolute inset-0 w-24 h-24 bg-emerald-400/30 rounded-full mx-auto animate-ping"></div>
+                                className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-100"
+                                style={{width: `${redirectProgress}%`}}
+                            />
                         </div>
 
-                        {/* Заголовок */}
-                        <div
-                            className="opacity-0 translate-y-5 transition-all duration-600 ease-out"
-                            style={{
-                                opacity: 1,
-                                transform: "translateY(0px)",
-                                transitionDelay: "0ms",
-                            }}
-                        >
-                            <h2 className="text-2xl font-bold mb-3">Успешно отправлено!</h2>
+                        <div className="flex items-center justify-center gap-2 text-white/80">
+                            <span className="text-sm">Переходим к списку заявок</span>
+                            <ArrowRight className="w-4 h-4 animate-pulse"/>
                         </div>
-
-                        <div
-                            className="opacity-0 translate-y-5 transition-all duration-600 ease-out"
-                            style={{
-                                opacity: 1,
-                                transform: "translateY(0px)",
-                                transitionDelay: "300ms",
-                            }}
-                        >
-                            <p className="text-white/80 mb-8">Переходим к списку заявок...</p>
-                        </div>
-
-                        {/* Прогресс-бар */}
-                        <div className="relative mb-6">
-                            <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
-                                <div
-                                    className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded-full transition-all duration-100 ease-out shadow-lg relative"
-                                    style={{width: `${redirectProgress}%`}}
-                                >
-                                    <div
-                                        className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent rounded-full"></div>
-                                </div>
-                            </div>
-                            <div className="flex justify-between text-xs text-white/60 mt-2">
-                                <span>Обработка...</span>
-                                <span>{Math.round(redirectProgress)}%</span>
-                            </div>
-                        </div>
-
-                        {/* Анимированная стрелка */}
-                        <div className="flex items-center justify-center gap-2 text-white/80 animate-bounce">
-                            <span className="text-sm">Переход</span>
-                            <ArrowRight className="w-4 h-4"/>
-                        </div>
-                    </div>
-
-                    {/* Анимированные частицы */}
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                        {[...Array(20)].map((_, i) => (
-                            <div
-                                key={i}
-                                className="absolute w-2 h-2 bg-white/20 rounded-full"
-                                style={{
-                                    left: `${Math.random() * 100}%`,
-                                    top: `${Math.random() * 100}%`,
-                                    animation: `float-${i} ${3 + Math.random() * 2}s ease-in-out infinite`,
-                                    animationDelay: `${Math.random() * 3}s`,
-                                }}
-                            ></div>
-                        ))}
                     </div>
                 </div>
             )}
 
-            <div className="max-w-2xl mx-auto px-3 py-4 space-y-4">
-                {/* Компактный Header */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-violet-200/50 shadow-lg p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div
-                            className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <Sparkles className="w-5 h-5 text-white"/>
+            <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+                {/* Header with Request Info */}
+                <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-violet-200/50 shadow-xl p-6">
+                    <div className="flex items-start gap-4 mb-6">
+                        <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                            <Sparkles className="w-6 h-6 text-white"/>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent truncate">
-                                Оприходование
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                                Оприходование устройств
                             </h1>
-                            <div className="flex items-center gap-2 text-sm">
-                                <span className="text-violet-600 font-medium">#{request.request_id}</span>
-                                <span className="text-slate-400">•</span>
-                                <span className="text-indigo-600 font-medium truncate">{request.project}</span>
+                            <div className="flex flex-wrap items-center gap-4 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-slate-500">Заявка:</span>
+                                    <span className="text-violet-600 font-bold">#{request.request_id}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-slate-500">Проект:</span>
+                                    <span className="text-indigo-600 font-medium">{request.project}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-slate-500">Устройство:</span>
+                                    <span className="text-slate-900 font-medium">{request.device}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Компактный прогресс */}
-                    {scannedDevices.length > 0 && (
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-600">Прогресс</span>
-                                <span className="font-bold text-violet-600">
-                  {scannedDevices.length}/{request.quantity} ({getProgressPercentage()}%)
-                </span>
+                    {/* Progress Section */}
+                    <div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl p-4 border border-violet-200/50">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <Target className="w-5 h-5 text-violet-600"/>
+                                <span className="font-semibold text-slate-900">Прогресс выполнения</span>
                             </div>
-                            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                            <div className="text-right">
+                                <div className="text-2xl font-bold text-violet-600">
+                                    {scannedDevices.length}/{Atm.length}
+                                </div>
+                                <div className="text-sm text-slate-500">устройств</div>
+                            </div>
+                        </div>
+
+                        <div className="mb-3">
+                            <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-500"
+                                    className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-700 ease-out relative"
                                     style={{width: `${getProgressPercentage()}%`}}
-                                ></div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Компактная информация о заявке */}
-                <div
-                    className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
-                    <button
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="w-full p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors"
-                    >
-                        <div className="flex items-center gap-3">
-                            <Package className="w-5 h-5 text-blue-600"/>
-                            <span className="font-semibold text-slate-900">Детали заявки</span>
-                        </div>
-                        {isExpanded ? <ChevronUp className="w-5 h-5"/> : <ChevronDown className="w-5 h-5"/>}
-                    </button>
-
-                    {isExpanded && (
-                        <div className="px-4 pb-4 border-t border-slate-200/50">
-                            <div className="grid grid-cols-2 gap-3 pt-3">
-                                <div className="space-y-1">
-                                    <p className="text-xs text-slate-500 font-medium">Устройство</p>
-                                    <p className="text-sm font-semibold text-slate-900">{request.device}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-slate-500 font-medium">Количество</p>
-                                    <p className="text-sm font-semibold text-slate-900">{request.quantity} шт.</p>
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent rounded-full"></div>
                                 </div>
                             </div>
                         </div>
-                    )}
-                </div>
 
-                <div
-                    className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
-                    <button
-                        onClick={() => setIsExpandedAtm(!isExpandedAtm)}
-                        className="w-full p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors"
-                    >
-                        <div className="flex items-center gap-3">
-                            <Package className="w-5 h-5 text-blue-600"/>
-                            <span className="font-semibold text-slate-900">Устройства</span>
-                        </div>
-                        {isExpandedAtm ? <ChevronUp className="w-5 h-5"/> : <ChevronDown className="w-5 h-5"/>}
-                    </button>
-
-                    {isExpandedAtm && (
-                        <div className="p-6">
-                            <div className="grid gap-4">
-                                {Atm.map((atm, index) => (
-                                    <div
-                                        key={atm.id}
-                                        className="bg-gray-50 rounded-xl p-4 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200 animate-in slide-in-from-left-5"
-                                        style={{animationDelay: `${index * 50}ms`}}
-                                    >
-                                        <div className="flex items-center space-x-4">
-                                            <div
-                                                className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-sm">
-                                                {index + 1}
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">
-                                                    Модель: <span className="text-blue-600">{atm.model}</span>
-                                                </p>
-                                                <p className="text-sm text-gray-600">
-                                                    S/N: <span className="font-mono">{atm.serial_number}</span>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Компактный сканер */}
-                <div
-                    className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
-                    <div className="p-4 border-b border-slate-200/50">
-                        <div className="flex items-center gap-3">
-                            <Plus className="w-5 h-5 text-emerald-600"/>
-                            <span className="font-semibold text-slate-900">Добавление устройств</span>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-600">
+                                {getProgressPercentage()}% завершено
+                            </span>
+                            {isAllDevicesScanned() ? (
+                                <div className="flex items-center gap-1 text-emerald-600 font-medium">
+                                    <CheckCircle2 className="w-4 h-4"/>
+                                    <span>Все устройства добавлены!</span>
+                                </div>
+                            ) : (
+                                <span className="text-amber-600 font-medium">
+                                    Осталось: {getRemainingDevices().length}
+                                </span>
+                            )}
                         </div>
                     </div>
-                    <div className="p-4">
+                </div>
+
+                {/* Scanner Section */}
+                <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-slate-200/50 shadow-xl overflow-hidden">
+                    <div className="p-6 border-b border-slate-200/50">
+                        <div className="flex items-center gap-3 mb-2">
+                            <QrCode className="w-6 h-6 text-emerald-600"/>
+                            <span className="text-lg font-bold text-slate-900">Сканирование устройств</span>
+                        </div>
+                        <p className="text-slate-600 text-sm">
+                            Отсканируйте QR-код или введите серийный номер устройства вручную
+                        </p>
+                    </div>
+
+                    <div className="p-6">
                         <ScannerInput onScan={handleNewScan} allowManualInput={true}/>
                     </div>
                 </div>
 
-                {/* Компактный список устройств */}
-                {scannedDevices.length > 0 && (
-                    <div
-                        className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
-                        <div className="p-4 border-b border-slate-200/50 flex items-center justify-between">
+                {/* Device List Section */}
+                <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-slate-200/50 shadow-xl overflow-hidden">
+                    <div className="p-6 border-b border-slate-200/50">
+                        <button
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            className="w-full flex items-center justify-between group"
+                        >
                             <div className="flex items-center gap-3">
-                                <Package className="w-5 h-5 text-blue-600"/>
-                                <span className="font-semibold text-slate-900">Устройства</span>
-                                <span
-                                    className="bg-violet-100 text-violet-700 text-xs font-bold px-2 py-1 rounded-full">
-                  {scannedDevices.length}
-                </span>
+                                <Package className="w-6 h-6 text-blue-600"/>
+                                <span className="text-lg font-bold text-slate-900">Список устройств</span>
+                                <span className="bg-blue-100 text-blue-700 text-sm font-bold px-3 py-1 rounded-full">
+                                    {Atm.length}
+                                </span>
                             </div>
-                            <button onClick={clearAllDevices}
-                                    className="text-rose-600 hover:text-rose-700 text-sm font-medium">
-                                Очистить
-                            </button>
+                            <div className="p-2 rounded-full group-hover:bg-slate-100 transition-colors">
+                                {isExpanded ? <ChevronUp className="w-5 h-5"/> : <ChevronDown className="w-5 h-5"/>}
+                            </div>
+                        </button>
+                    </div>
+
+                    {isExpanded && (
+                        <div className="p-6 max-h-80 overflow-y-auto">
+                            <div className="space-y-3">
+                                {Atm.map((atm, index) => {
+                                    const status = getDeviceStatus(atm.serial_number)
+                                    return (
+                                        <div
+                                            key={atm.id}
+                                            className={`p-4 rounded-2xl border-2 transition-all duration-300 ${
+                                                status === 'scanned' 
+                                                    ? 'bg-emerald-50 border-emerald-200 shadow-sm' 
+                                                    : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
+                                                        status === 'scanned'
+                                                            ? 'bg-emerald-500 text-white'
+                                                            : 'bg-slate-300 text-slate-600'
+                                                    }`}>
+                                                        {status === 'scanned' ? <CheckCircle2 className="w-5 h-5"/> : index + 1}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold text-slate-900">
+                                                            {atm.model}
+                                                        </p>
+                                                        <p className="text-sm text-slate-600 font-mono">
+                                                            {atm.serial_number}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    {status === 'scanned' ? (
+                                                        <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm">
+                                                            <CheckCircle className="w-4 h-4"/>
+                                                            <span>Добавлено</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2 text-amber-600 font-medium text-sm">
+                                                            <Clock className="w-4 h-4"/>
+                                                            <span>Ожидает</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Scanned Devices List */}
+                {scannedDevices.length > 0 && (
+                    <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-slate-200/50 shadow-xl overflow-hidden">
+                        <div className="p-6 border-b border-slate-200/50 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Package className="w-6 h-6 text-violet-600"/>
+                                <span className="text-lg font-bold text-slate-900">Отсканированные устройства</span>
+                                <span className="bg-violet-100 text-violet-700 text-sm font-bold px-3 py-1 rounded-full">
+                                    {scannedDevices.length}
+                                </span>
+                            </div>
+                            {scannedDevices.length > 1 && (
+                                <button
+                                    onClick={clearAllDevices}
+                                    className="flex items-center gap-2 text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-rose-50 px-3 py-2 rounded-xl transition-colors"
+                                >
+                                    <Trash2 className="w-4 h-4"/>
+                                    <span>Очистить все</span>
+                                </button>
+                            )}
                         </div>
 
-                        <div className="p-4">
-                            {/* Компактный список */}
-                            <div className="space-y-2 max-h-48 overflow-y-auto mb-4">
+                        <div className="p-6">
+                            <div className="space-y-3 max-h-64 overflow-y-auto mb-6">
                                 {scannedDevices.map((device, index) => (
                                     <div
                                         key={device.id}
-                                        className="flex items-center justify-between p-3 bg-slate-50/50 rounded-xl border border-slate-200/50 hover:bg-violet-50/50 transition-colors"
+                                        className="flex items-center justify-between p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl border border-violet-200/50 hover:shadow-md transition-all duration-200"
                                     >
-                                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                                            <div
-                                                className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-500 text-white rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-500 text-white rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0">
                                                 {index + 1}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <p className="font-semibold text-slate-900 truncate">{device.code}</p>
-                                                <p className="text-xs text-slate-500">
-                                                    {new Date(device.scannedAt).toLocaleTimeString("ru-RU", {
-                                                        hour: "2-digit",
-                                                        minute: "2-digit",
-                                                    })}
-                                                </p>
+                                                <p className="font-bold text-slate-900 truncate">{device.code}</p>
+                                                <div className="flex items-center gap-2 text-sm text-slate-500">
+                                                    <Clock className="w-3 h-3"/>
+                                                    <span>
+                                                        {new Date(device.scannedAt).toLocaleTimeString("ru-RU", {
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        })}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => removeDevice(device.id)}
-                                            className="text-rose-500 hover:text-rose-700 p-2 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0"
-                                        >
-                                            <Trash2 className="w-4 h-4"/>
-                                        </button>
+
+                                        <div className="flex items-center gap-2">
+                                            <PhotoCapture
+                                                onSave={(data) => setPhotoData(data)}
+                                                status="Принят в покрасочную"
+                                                sn={device.code}
+                                                bt="True"
+                                            />
+                                            <PhotoModal atmId={device.code}/>
+                                            <button
+                                                onClick={() => removeDevice(device.id)}
+                                                className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors"
+                                                title="Удалить устройство"
+                                            >
+                                                <X className="w-4 h-4"/>
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Компактная кнопка отправки */}
-                            <div
-                                className="bg-gradient-to-r from-violet-50/50 to-purple-50/50 rounded-xl p-4 border border-violet-200/50">
-                                <div className="flex items-center justify-between gap-3">
+                            {/* Submit Section */}
+                            <div className={`bg-gradient-to-r rounded-2xl p-6 border-2 transition-all duration-300 ${
+                                isAllDevicesScanned() 
+                                    ? 'from-emerald-50 to-teal-50 border-emerald-200'
+                                    : 'from-amber-50 to-orange-50 border-amber-200'
+                            }`}>
+                                <div className="flex items-center justify-between gap-4">
                                     <div className="min-w-0 flex-1">
-                                        <p className="font-semibold text-slate-900 text-sm">Готово к отправке</p>
-                                        <p className="text-xs text-slate-600">
-                                            {scannedDevices.length} устройств
-                                            {request && scannedDevices.length < request.quantity && (
-                                                <span className="text-amber-600 block">
-                          ⚠️ {scannedDevices.length}/{request.quantity}
-                        </span>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            {isAllDevicesScanned() ? (
+                                                <CheckCircle className="w-5 h-5 text-emerald-600"/>
+                                            ) : (
+                                                <AlertCircle className="w-5 h-5 text-amber-600"/>
                                             )}
+                                            <h3 className={`font-bold ${
+                                                isAllDevicesScanned() ? 'text-emerald-900' : 'text-amber-900'
+                                            }`}>
+                                                {isAllDevicesScanned() ? 'Готово к отправке!' : 'Требуется действие'}
+                                            </h3>
+                                        </div>
+
+                                        <p className={`text-sm ${
+                                            isAllDevicesScanned() ? 'text-emerald-700' : 'text-amber-700'
+                                        }`}>
+                                            {isAllDevicesScanned()
+                                                ? `Все ${scannedDevices.length} устройств добавлены и готовы к отправке`
+                                                : `Добавлено ${scannedDevices.length} из ${Atm.length} устройств`
+                                            }
                                         </p>
+
+                                        {!isAllDevicesScanned() && (
+                                            <p className="text-xs text-amber-600 mt-1">
+                                                Для отправки необходимо добавить все устройства
+                                            </p>
+                                        )}
                                     </div>
 
                                     <button
                                         onClick={submitDevices}
-                                        disabled={isSubmitting}
-                                        className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl hover:from-violet-700 hover:to-purple-700 disabled:opacity-50 font-semibold transition-all duration-300 shadow-lg text-sm flex-shrink-0"
+                                        disabled={isSubmitting || !isAllDevicesScanned()}
+                                        className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold transition-all duration-300 shadow-lg text-white ${
+                                            isAllDevicesScanned() && !isSubmitting
+                                                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 hover:shadow-xl'
+                                                : 'bg-slate-400 cursor-not-allowed'
+                                        }`}
                                     >
                                         {isSubmitting ? (
                                             <>
-                                                <div
-                                                    className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                <span className="hidden sm:inline">Отправка...</span>
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                <span>Отправка...</span>
                                             </>
                                         ) : (
                                             <>
-                                                <Send className="w-4 h-4"/>
-                                                <span className="hidden sm:inline">Отправить</span>
-                                                <span className="sm:hidden">({scannedDevices.length})</span>
+                                                <Send className="w-5 h-5"/>
+                                                <span>Отправить</span>
                                             </>
                                         )}
                                     </button>

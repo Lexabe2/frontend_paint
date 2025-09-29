@@ -5,7 +5,6 @@ import {useEffect, useState} from "react";
 import {motion, AnimatePresence} from "framer-motion";
 import WarehouseInfo from "../components/WarehouseInfo";
 import PaintingInfo from "../components/PaintingInfo";
-import PhotoCapture from "../components/PhotoCapture";
 import api from "../api/axios.js";
 import {
     Home,
@@ -23,7 +22,6 @@ export default function Dashboard() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [photoData, setPhotoData] = useState({photos: [], comment: ""});
 
     // правила доступа
     const accessRules = {
@@ -177,12 +175,6 @@ export default function Dashboard() {
 
     return (
         <div className="min-l-screen from-slate-50 via-blue-50 to-indigo-50">
-            <PhotoCapture
-                onSave={(data) => {
-                    console.log("Данные из PhotoCapture:", data);
-                    setPhotoData(data); // Сохраняем в состояние
-                }}
-            />
             <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-8">
                 {/* Header */}
                 <motion.div
