@@ -17,6 +17,9 @@ import BroadcastPaint from '../pages/BroadcastPaint.jsx'
 import Painting from '../pages/Painting';
 import Work from '../pages/WorkManager.jsx';
 import Warehouse from '../pages/Warehouse.jsx';
+import OTKSearch from '../pages/OTKSearch.jsx';
+import OTK from '../pages/OTK.jsx';
+import Corrections from '../pages/Corrections.jsx';
 import Layout from '../layouts/Layout';
 
 export default function MainRouter() {
@@ -48,6 +51,9 @@ export default function MainRouter() {
         <Route path="/painting/" element={<Painting />} />
         <Route path="/work/" element={<Work />} />
         <Route path="/warehouse/" element={<Warehouse />} />
+        <Route path="/otk/" element={<OTKSearch />} />
+        <Route path="/otk/:query/" element={<OTK />} />
+        <Route path="/corrections/" element={<Corrections />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 

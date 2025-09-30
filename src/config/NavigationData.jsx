@@ -4,12 +4,13 @@ import {
     CirclePlus,
     MessageSquarePlus,
     Eye,
-    FolderPlus,
+    UserCheck,
     CreditCard,
     ClipboardIcon,
     FileWarning,
     SprayCan,
-    Warehouse
+    Warehouse,
+    Pencil
 } from "lucide-react"
 
 export const navigationGroups = {
@@ -74,11 +75,11 @@ export const navigationGroups = {
             },
             {
                 id: "registration_receive",
-                label: "Получение",
-                icon: FolderPlus,
+                label: "ОТК",
+                icon: UserCheck,
                 color: "from-green-500 to-emerald-500",
                 permission: "registration_receive_war",
-                path: "/registration?group=warehouse",
+                path: "/otk",
                 category: 'warehouse'
             },
         ],
@@ -122,6 +123,15 @@ export const navigationGroups = {
                 color: "from-green-500 to-emerald-500",
                 permission: "painting",
                 path: "/painting?work=paint",
+                category: 'painting'
+            },
+            {
+                id: "corrections",
+                label: "Исправления",
+                icon: Pencil,
+                color: "from-green-500 to-emerald-500",
+                permission: "corrections",
+                path: "/corrections",
                 category: 'painting'
             },
             {

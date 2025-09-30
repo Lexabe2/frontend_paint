@@ -4,7 +4,7 @@ import api from "../api/axios";
 import imageCompression from "browser-image-compression";
 import {createPortal} from "react-dom";
 
-export default function PhotoCapture({onSave, status, sn, bt}) {
+export default function PhotoCapture({onSave, status, sn, bt, defect, onUploadSuccess}) {
     const [photos, setPhotos] = useState([]);
     const [showGallery, setShowGallery] = useState(false);
     const [comment, setComment] = useState("");
@@ -12,6 +12,7 @@ export default function PhotoCapture({onSave, status, sn, bt}) {
     const [uploadSuccess, setUploadSuccess] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const [dragOver, setDragOver] = useState(false);
+
 
     // Выбор фото
     const handleChange = (e) => {
@@ -130,6 +131,7 @@ export default function PhotoCapture({onSave, status, sn, bt}) {
             formData.append("comment", comment);
             formData.append("status", status);
             formData.append("sn", sn);
+            formData.append("defect", defect);
 
             const res = await api.post("/atm/upload-photos/", formData, {
                 headers: {"Content-Type": "multipart/form-data"},
@@ -137,6 +139,9 @@ export default function PhotoCapture({onSave, status, sn, bt}) {
 
             console.log("Сохранено:", res.data);
             setUploadSuccess(true);
+            if (onUploadSuccess) {
+                onUploadSuccess(true)   // уведомляем родителя
+            }
 
         } catch (err) {
             if (err.response && err.response.data && err.response.data.error) {
