@@ -10,7 +10,8 @@ import {
     FileWarning,
     SprayCan,
     Warehouse,
-    Pencil
+    Pencil,
+    Banknote
 } from "lucide-react"
 
 export const navigationGroups = {
@@ -80,6 +81,15 @@ export const navigationGroups = {
                 color: "from-green-500 to-emerald-500",
                 permission: "registration_receive_war",
                 path: "/otk",
+                category: 'warehouse'
+            },
+            {
+                id: "viewing_atms",
+                label: "Банкоматы",
+                icon: Banknote,
+                color: "from-green-500 to-emerald-500",
+                permission: "registration_receive_war",
+                path: "/viewing_atms",
                 category: 'warehouse'
             },
         ],
@@ -162,6 +172,6 @@ const allPermissions = Object.values(navigationGroups)
 export const rolePermissions = {
     admin: allPermissions, // админ видит всё
     admin_paint: ["application", "registration", "atm", "complaints"],
-    storekeeper: ["signing", "warehouse", "viewing_req", "registration_transfer_war", "registration_receive_war"],
+    storekeeper: ["signing", "warehouse", "viewing_req", "registration_transfer_war", "registration_receive_war", "viewing_atms"],
     moderator: ['complaints', 'viewing_req', 'registration_transfer_war', 'registration_receive_war'],
 }

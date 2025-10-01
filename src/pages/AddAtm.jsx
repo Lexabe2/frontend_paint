@@ -7,7 +7,8 @@ import PhotoCapture from "../components/PhotoCapture.jsx";
 export default function AddAtm({onSuccess}) {
     const [serialNumber, setSerialNumber] = useState("");
     const [model, setModel] = useState("");
-    const [acceptedAt, setAcceptedAt] = useState("");
+    const today = new Date().toISOString().split("T")[0];
+    const [acceptedAt, setAcceptedAt] = useState(today);
     const [requestId, setRequestId] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -285,18 +286,18 @@ export default function AddAtm({onSuccess}) {
                                 <Calendar className="w-4 h-4 text-gray-500"/>
                                 <span>Дата приёмки *</span>
                             </label>
-                            <div className="relative">
-                                <input
-                                    type="date"
-                                    value={acceptedAt}
-                                    onChange={(e) => setAcceptedAt(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                    required
-                                />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <Calendar className="w-4 h-4 text-gray-400"/>
-                                </div>
-                            </div>
+                                <div className="relative">
+      <input
+        type="date"
+        value={acceptedAt}
+        onChange={(e) => setAcceptedAt(e.target.value)}
+        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+        required
+      />
+      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+        <Calendar className="w-4 h-4 text-gray-400" />
+      </div>
+    </div>
 
                         </div>
                         <PhotoCapture
