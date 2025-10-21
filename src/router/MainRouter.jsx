@@ -22,6 +22,7 @@ import OTK from '../pages/OTK.jsx';
 import Corrections from '../pages/Corrections.jsx';
 import AtmViewing from '../pages/ViewingAtms.jsx';
 import Layout from '../layouts/Layout';
+import StatusReq from "../pages/StatusReq.jsx";
 
 export default function MainRouter() {
   return (
@@ -56,6 +57,7 @@ export default function MainRouter() {
         <Route path="/otk/:query/" element={<OTK />} />
         <Route path="/corrections/" element={<Corrections />} />
         <Route path="/viewing_atms/" element={<AtmViewing />} />
+        <Route path="/status_req/:id/" element={<StatusReq />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 
