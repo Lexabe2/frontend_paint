@@ -12,7 +12,11 @@ import {
   X,
   AlertCircle,
   CheckCircle2,
-  Clock
+  Clock,
+  ChevronDown,
+  Archive,
+  TrendingUp,
+  Sparkles
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -24,6 +28,8 @@ export default function StatusReq() {
   const [requestData, setRequestData] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [addingAtm, setAddingAtm] = useState(null);
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
   const [searchSN, setSearchSN] = useState("");
   const [filterFrom, setFilterFrom] = useState("");
@@ -31,24 +37,46 @@ export default function StatusReq() {
   const [showFilters, setShowFilters] = useState(false);
 
   const statusOptions = [
-    "Принят на склад",
-    "Готов к передаче в покраску",
-    "Готов к передаче в ПП",
-    "Принята в ПП",
-    "ПП завершено",
-    "Отгружено"
+    {
+      label: "Принят на склад",
+      color: "bg-slate-100 text-slate-700 border-slate-300",
+      hoverColor: "hover:bg-slate-200",
+      icon: Archive
+    },
+    {
+      label: "Готов к передаче в покраску",
+      color: "bg-blue-100 text-blue-700 border-blue-300",
+      hoverColor: "hover:bg-blue-200",
+      icon: TrendingUp
+    },
+    {
+      label: "Готов к передаче в ПП",
+      color: "bg-cyan-100 text-cyan-700 border-cyan-300",
+      hoverColor: "hover:bg-cyan-200",
+      icon: TrendingUp
+    },
+    {
+      label: "Принята в ПП",
+      color: "bg-amber-100 text-amber-700 border-amber-300",
+      hoverColor: "hover:bg-amber-200",
+      icon: Clock
+    },
+    {
+      label: "ПП завершено",
+      color: "bg-green-100 text-green-700 border-green-300",
+      hoverColor: "hover:bg-green-200",
+      icon: CheckCircle2
+    },
+    {
+      label: "Отгружено",
+      color: "bg-emerald-100 text-emerald-700 border-emerald-300",
+      hoverColor: "hover:bg-emerald-200",
+      icon: Sparkles
+    }
   ];
 
-  const getStatusColor = (status) => {
-    const colors = {
-      "Принят на склад": "bg-slate-100 text-slate-700",
-      "Готов к передаче в покраску": "bg-blue-100 text-blue-700",
-      "Готов к передаче в ПП": "bg-cyan-100 text-cyan-700",
-      "Принята в ПП": "bg-amber-100 text-amber-700",
-      "ПП завершено": "bg-green-100 text-green-700",
-      "Отгружено": "bg-emerald-100 text-emerald-700"
-    };
-    return colors[status] || "bg-gray-100 text-gray-700";
+  const getStatusConfig = (statusLabel) => {
+    return statusOptions.find(opt => opt.label === statusLabel) || statusOptions[0];
   };
 
   const fetchRequests = async () => {
@@ -76,6 +104,17 @@ export default function StatusReq() {
   useEffect(() => {
     fetchRequests();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isStatusDropdownOpen && !event.target.closest('.status-dropdown')) {
+        setIsStatusDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isStatusDropdownOpen]);
 
   const handleStatusChange = async () => {
     try {
@@ -109,6 +148,7 @@ export default function StatusReq() {
 
   const addAtmToRequest = async (atmSn) => {
     try {
+      setAddingAtm(atmSn);
       await api.patch(`/changes_req_atm/`, { sn: atmSn }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -127,6 +167,8 @@ export default function StatusReq() {
     } catch (err) {
       console.error("Ошибка при добавлении банкомата:", err);
       setError("Не удалось добавить банкомат в заявку");
+    } finally {
+      setAddingAtm(null);
     }
   };
 
@@ -139,9 +181,12 @@ export default function StatusReq() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-          <p className="text-slate-600 font-medium">Загрузка данных...</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-blue-400 rounded-full animate-ping opacity-20"></div>
+          </div>
+          <p className="text-slate-600 font-medium text-lg">Загрузка данных...</p>
         </div>
       </div>
     );
@@ -149,10 +194,10 @@ export default function StatusReq() {
 
   if (!requestData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
-        <div className="bg-white/80 backdrop-blur shadow-lg rounded-2xl p-12 border border-slate-200 text-center">
-          <AlertCircle className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-          <p className="text-slate-500 text-lg">Данные не найдены</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl p-12 border border-slate-200 text-center">
+          <AlertCircle className="w-16 h-16 mx-auto mb-4 text-slate-400" />
+          <p className="text-slate-600 text-lg">Данные не найдены</p>
         </div>
       </div>
     );
@@ -170,69 +215,112 @@ export default function StatusReq() {
   });
 
   const hasActiveFilters = searchSN || filterFrom || filterTo;
+  const currentStatusConfig = getStatusConfig(selectedStatus);
+  const StatusIcon = currentStatusConfig.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-4">
+    <div className="min-h-screen from-slate-50 via-blue-50 to-slate-100">
+      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-5">
+          <div className="flex items-start gap-4 mb-5">
             <button
               onClick={() => window.history.back()}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 active:scale-95 transition-all shadow-sm"
+              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 active:scale-95 transition-all shadow-sm border border-slate-200"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="font-medium">Назад</span>
             </button>
 
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-slate-800">
-                Заявка №{requestData.request.number}
-              </h1>
-              <div className="flex items-center gap-4 mt-1 flex-wrap">
-                <span className="text-sm text-slate-600 flex items-center gap-1">
-                  <Package className="w-4 h-4" />
-                  {requestData.request.project}
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <h1 className="text-3xl font-bold text-slate-800">
+                  Заявка №{requestData.request.number}
+                </h1>
+                <div className={`flex items-center gap-2 px-4 py-2 ${currentStatusConfig.color} rounded-xl shadow-sm border`}>
+                  <StatusIcon className="w-4 h-4" />
+                  <span className="text-sm font-bold">{requestData.request.status}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-5 flex-wrap">
+                <span className="text-sm text-slate-600 flex items-center gap-2">
+                  <Package className="w-4 h-4 text-blue-500" />
+                  <span className="font-medium text-slate-700">{requestData.request.project}</span>
                 </span>
-                <span className="text-sm text-slate-600 flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  Создана: {requestData.request.date_received}
+                <span className="text-sm text-slate-600 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-blue-500" />
+                  <span className="font-medium text-slate-700">Создана: {requestData.request.date_received}</span>
+                </span>
+                <span className="text-sm text-slate-600 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <span className="font-medium text-slate-700">{requestData.atm_list_req.length} банкоматов</span>
                 </span>
               </div>
             </div>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 bg-red-100 border border-red-200 text-red-700 rounded-lg mb-4">
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl mb-5">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              <p className="text-sm font-medium">{error}</p>
+              <p className="text-sm font-medium flex-1">{error}</p>
               <button
                 onClick={() => setError("")}
-                className="ml-auto p-1 hover:bg-red-200 rounded transition-colors"
+                className="p-1 hover:bg-red-100 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <label className="text-sm font-semibold text-slate-700">Статус заявки:</label>
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedStatus}
-                onChange={(e) => {
-                  setSelectedStatus(e.target.value);
-                  setHasUnsavedChanges(true);
-                }}
-                className="border-2 border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-4 py-2 outline-none transition-all bg-white font-medium"
-              >
-                {statusOptions.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+          <div className="flex items-center gap-3 flex-wrap bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-4 border border-slate-200 shadow-sm">
+            <label className="text-sm font-semibold text-slate-700">Изменить статус:</label>
+            <div className="flex items-center gap-3">
+              <div className="relative status-dropdown">
+                <button
+                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  className={`flex items-center gap-3 px-4 py-2.5 ${currentStatusConfig.color} rounded-xl border shadow-sm ${currentStatusConfig.hoverColor} transition-all font-medium min-w-[280px] justify-between`}
+                >
+                  <div className="flex items-center gap-2">
+                    <StatusIcon className="w-5 h-5" />
+                    <span>{selectedStatus}</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isStatusDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-30">
+                    {statusOptions.map((option) => {
+                      const OptionIcon = option.icon;
+                      const isSelected = option.label === selectedStatus;
+                      return (
+                        <button
+                          key={option.label}
+                          onClick={() => {
+                            setSelectedStatus(option.label);
+                            setHasUnsavedChanges(true);
+                            setIsStatusDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all ${
+                            isSelected
+                              ? `${option.color} border-l-4`
+                              : 'hover:bg-slate-50 border-l-4 border-transparent'
+                          }`}
+                        >
+                          <OptionIcon className="w-5 h-5" />
+                          <span className="font-medium">{option.label}</span>
+                          {isSelected && (
+                            <CheckCircle2 className="w-4 h-4 ml-auto" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={handleStatusChange}
                 disabled={!hasUnsavedChanges || saving}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:scale-95 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
               >
                 {saving ? (
                   <>
@@ -248,8 +336,8 @@ export default function StatusReq() {
               </button>
             </div>
             {hasUnsavedChanges && !saving && (
-              <span className="text-xs text-amber-600 font-medium flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+              <span className="text-xs text-amber-600 font-semibold flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200">
+                <Clock className="w-3.5 h-3.5" />
                 Несохранённые изменения
               </span>
             )}
@@ -258,50 +346,51 @@ export default function StatusReq() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <div className="bg-white/80 backdrop-blur shadow-lg rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-xl shadow-xl rounded-3xl border border-slate-200 overflow-hidden">
           <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-xl border border-green-200">
+                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                </div>
                 Банкоматы с заявкой
-                <span className="text-sm font-normal text-slate-500">
-                  ({requestData.atm_list_req.length})
+                <span className="text-base font-normal text-slate-500 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">
+                  {requestData.atm_list_req.length}
                 </span>
               </h2>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(requestData.request.status)}`}>
-                {requestData.request.status}
-              </span>
             </div>
 
             {requestData.atm_list_req.length === 0 ? (
-              <div className="text-center py-12 text-slate-500">
-                <Package className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                <p>Банкоматы ещё не добавлены в заявку</p>
+              <div className="text-center py-16 text-slate-500">
+                <div className="p-4 bg-slate-100 rounded-2xl w-fit mx-auto mb-4">
+                  <Package className="w-16 h-16 text-slate-400" />
+                </div>
+                <p className="text-lg font-medium">Банкоматы ещё не добавлены в заявку</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-hidden rounded-xl border border-slate-200">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b-2 border-slate-200">
-                      <th className="text-left p-3 text-sm font-semibold text-slate-700">Серийный номер</th>
-                      <th className="text-left p-3 text-sm font-semibold text-slate-700">Дата принятия</th>
-                      <th className="text-left p-3 text-sm font-semibold text-slate-700">Модель</th>
-                      <th className="text-left p-3 text-sm font-semibold text-slate-700">Паллет</th>
+                    <tr className="bg-gradient-to-r from-slate-100 to-slate-50">
+                      <th className="text-left p-4 text-xs font-bold text-slate-700 uppercase tracking-wider">Серийный номер</th>
+                      <th className="text-left p-4 text-xs font-bold text-slate-700 uppercase tracking-wider">Дата принятия</th>
+                      <th className="text-left p-4 text-xs font-bold text-slate-700 uppercase tracking-wider">Модель</th>
+                      <th className="text-left p-4 text-xs font-bold text-slate-700 uppercase tracking-wider">Паллет</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="bg-white">
                     {requestData.atm_list_req.map((atm, index) => (
                       <tr
                         key={atm.sn}
-                        className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                        className="border-t border-slate-100 hover:bg-slate-50 transition-colors"
                       >
-                        <td className="p-3 font-medium text-slate-800">{atm.sn}</td>
-                        <td className="p-3 text-slate-600">
+                        <td className="p-4 font-semibold text-slate-800">{atm.sn}</td>
+                        <td className="p-4 text-slate-600">
                           {new Date(atm.accepted_at).toLocaleDateString("ru-RU")}
                         </td>
-                        <td className="p-3 text-slate-600">{atm.model}</td>
-                        <td className="p-3">
-                          <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-sm font-medium">
+                        <td className="p-4 text-slate-600">{atm.model}</td>
+                        <td className="p-4">
+                          <span className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold border border-slate-200">
                             {atm.pallet}
                           </span>
                         </td>
@@ -314,22 +403,24 @@ export default function StatusReq() {
           </div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur shadow-lg rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-xl shadow-xl rounded-3xl border border-slate-200 overflow-hidden">
           <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Package className="w-5 h-5 text-blue-600" />
-                Банкоматы без заявки
-                <span className="text-sm font-normal text-slate-500">
-                  ({filteredAtms.length} из {requestData.atm_list_not_req.length})
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-xl border border-blue-200">
+                  <Package className="w-6 h-6 text-blue-600" />
+                </div>
+                Доступные банкоматы
+                <span className="text-base font-normal text-slate-500 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">
+                  {filteredAtms.length} из {requestData.atm_list_not_req.length}
                 </span>
               </h2>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-sm ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all shadow-sm font-semibold border ${
                   showFilters
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-200'
                 }`}
               >
                 <Filter className="w-4 h-4" />
@@ -343,52 +434,52 @@ export default function StatusReq() {
             </div>
 
             {showFilters && (
-              <div className="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div className="mb-5 p-5 bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl border border-slate-200">
                 <div className="flex flex-wrap gap-4 items-end">
                   <div className="flex-1 min-w-[200px]">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-sm font-bold text-slate-700 mb-2">
                       Поиск по серийному номеру
                     </label>
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input
                         type="text"
                         value={searchSN}
                         onChange={(e) => setSearchSN(e.target.value)}
                         placeholder="Введите серийный номер"
-                        className="w-full pl-10 pr-4 py-2 border-2 border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg outline-none transition-all"
+                        className="w-full pl-11 pr-4 py-3 border-2 border-slate-200 bg-white text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl outline-none transition-all"
                       />
                     </div>
                   </div>
 
                   <div className="flex-1 min-w-[150px]">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-sm font-bold text-slate-700 mb-2">
                       Дата от
                     </label>
                     <input
                       type="date"
                       value={filterFrom}
                       onChange={(e) => setFilterFrom(e.target.value)}
-                      className="w-full px-4 py-2 border-2 border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg outline-none transition-all"
+                      className="w-full px-4 py-3 border-2 border-slate-200 bg-white text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl outline-none transition-all"
                     />
                   </div>
 
                   <div className="flex-1 min-w-[150px]">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-sm font-bold text-slate-700 mb-2">
                       Дата до
                     </label>
                     <input
                       type="date"
                       value={filterTo}
                       onChange={(e) => setFilterTo(e.target.value)}
-                      className="w-full px-4 py-2 border-2 border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg outline-none transition-all"
+                      className="w-full px-4 py-3 border-2 border-slate-200 bg-white text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl outline-none transition-all"
                     />
                   </div>
 
                   {hasActiveFilters && (
                     <button
                       onClick={clearFilters}
-                      className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-all font-medium"
+                      className="px-4 py-3 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-all font-semibold"
                     >
                       Сбросить
                     </button>
@@ -398,55 +489,67 @@ export default function StatusReq() {
             )}
 
             {filteredAtms.length === 0 ? (
-              <div className="text-center py-12 text-slate-500">
-                <Search className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                <p className="font-medium">
+              <div className="text-center py-16 text-slate-500">
+                <div className="p-4 bg-slate-100 rounded-2xl w-fit mx-auto mb-4">
+                  <Search className="w-16 h-16 text-slate-400" />
+                </div>
+                <p className="text-lg font-medium mb-2">
                   {hasActiveFilters ? 'Ничего не найдено' : 'Нет доступных банкоматов'}
                 </p>
                 {hasActiveFilters && (
                   <button
                     onClick={clearFilters}
-                    className="mt-3 text-blue-600 hover:underline text-sm"
+                    className="mt-3 text-blue-600 hover:text-blue-700 font-medium"
                   >
                     Сбросить фильтры
                   </button>
                 )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-hidden rounded-xl border border-slate-200">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b-2 border-slate-200">
-                      <th className="text-left p-3 text-sm font-semibold text-slate-700">Серийный номер</th>
-                      <th className="text-left p-3 text-sm font-semibold text-slate-700">Дата принятия</th>
-                      <th className="text-left p-3 text-sm font-semibold text-slate-700">Модель</th>
-                      <th className="text-left p-3 text-sm font-semibold text-slate-700">Паллет</th>
-                      <th className="text-left p-3 text-sm font-semibold text-slate-700">Действие</th>
+                    <tr className="bg-gradient-to-r from-slate-100 to-slate-50">
+                      <th className="text-left p-4 text-xs font-bold text-slate-700 uppercase tracking-wider">Серийный номер</th>
+                      <th className="text-left p-4 text-xs font-bold text-slate-700 uppercase tracking-wider">Дата принятия</th>
+                      <th className="text-left p-4 text-xs font-bold text-slate-700 uppercase tracking-wider">Модель</th>
+                      <th className="text-left p-4 text-xs font-bold text-slate-700 uppercase tracking-wider">Паллет</th>
+                      <th className="text-left p-4 text-xs font-bold text-slate-700 uppercase tracking-wider">Действие</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="bg-white">
                     {filteredAtms.map((atm) => (
                       <tr
                         key={atm.sn}
-                        className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                        className="border-t border-slate-100 hover:bg-slate-50 transition-colors"
                       >
-                        <td className="p-3 font-medium text-slate-800">{atm.sn}</td>
-                        <td className="p-3 text-slate-600">
+                        <td className="p-4 font-semibold text-slate-800">{atm.sn}</td>
+                        <td className="p-4 text-slate-600">
                           {new Date(atm.accepted_at).toLocaleDateString("ru-RU")}
                         </td>
-                        <td className="p-3 text-slate-600">{atm.model}</td>
-                        <td className="p-3">
-                          <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-sm font-medium">
+                        <td className="p-4 text-slate-600">{atm.model}</td>
+                        <td className="p-4">
+                          <span className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold border border-slate-200">
                             {atm.pallet}
                           </span>
                         </td>
-                        <td className="p-3">
+                        <td className="p-4">
                           <button
                             onClick={() => addAtmToRequest(atm.sn)}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 active:scale-95 transition-all shadow-md font-medium"
+                            disabled={addingAtm === atm.sn}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all shadow-md font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <Plus className="w-4 h-4" />
-                            Добавить
+                            {addingAtm === atm.sn ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Добавление...
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-4 h-4" />
+                                Добавить
+                              </>
+                            )}
                           </button>
                         </td>
                       </tr>
