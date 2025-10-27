@@ -23,6 +23,7 @@ import Corrections from '../pages/Corrections.jsx';
 import AtmViewing from '../pages/ViewingAtms.jsx';
 import Layout from '../layouts/Layout';
 import StatusReq from "../pages/StatusReq.jsx";
+import ATMStatusPage from "../pages/ChangesStatusAtm.jsx";
 
 export default function MainRouter() {
   return (
@@ -58,6 +59,7 @@ export default function MainRouter() {
         <Route path="/corrections/" element={<Corrections />} />
         <Route path="/viewing_atms/" element={<AtmViewing />} />
         <Route path="/status_req/:id/" element={<StatusReq />} />
+        <Route path="/change_status_atm/" element={<ATMStatusPage />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 

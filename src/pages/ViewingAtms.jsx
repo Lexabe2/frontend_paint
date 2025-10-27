@@ -683,6 +683,11 @@ export default function AtmViewing() {
                               {formatDate(atm.accepted_at)}
                             </span>
                           </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Дата:</span>
+                            <span className="font-medium text-gray-900">
+                            </span>
+                          </div>
                         </div>
                       </div>
 

@@ -92,6 +92,15 @@ export const navigationGroups = {
                 path: "/viewing_atms",
                 category: 'warehouse'
             },
+            {
+                id: "change_status_atm",
+                label: "Статус банкомата",
+                icon: Banknote,
+                color: "from-green-500 to-emerald-500",
+                permission: "registration_receive_war",
+                path: "/change_status_atm",
+                category: 'warehouse'
+            },
         ],
     },
     group2: {
