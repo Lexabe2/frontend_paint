@@ -181,6 +181,6 @@ const allPermissions = Object.values(navigationGroups)
 export const rolePermissions = {
     admin: allPermissions, // админ видит всё
     admin_paint: ["application", "registration", "atm", "complaints"],
-    storekeeper: ["signing", "warehouse", "viewing_req", "registration_transfer_war", "registration_receive_war", "viewing_atms"],
+    storekeeper: ["signing", "warehouse", "viewing_req", "registration_transfer_war", "registration_receive_war", "viewing_atms", "change_status_atm"],
     moderator: ['complaints', 'viewing_req', 'registration_transfer_war', 'registration_receive_war'],
 }
