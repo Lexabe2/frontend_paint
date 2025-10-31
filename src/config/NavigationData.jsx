@@ -101,6 +101,15 @@ export const navigationGroups = {
                 path: "/change_status_atm",
                 category: 'warehouse'
             },
+            {
+                id: "act",
+                label: "Акты",
+                icon: Banknote,
+                color: "from-green-500 to-emerald-500",
+                permission: "registration_receive_war",
+                path: "/act",
+                category: 'warehouse'
+            },
         ],
     },
     group2: {

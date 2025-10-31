@@ -56,8 +56,8 @@ export default function ATMStatusPage() {
       icon: CheckCircle2
     },
     {
-      value: "Завершен",
-      label: "Завершен",
+      value: "Готов к передаче в ПП",
+      label: "Готов к передаче в ПП",
       color: "bg-slate-100 text-slate-700 border-slate-300",
       icon: CheckCircle2
     }
