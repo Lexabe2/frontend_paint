@@ -6,6 +6,7 @@ import ScrollToTop from './components/ScrollToTop';
 import LogConsole from "./pages/Logs.jsx"; // ✅ лучше держать в components/
 import './index.css';
 
+
 ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
         <ScrollToTop/>
