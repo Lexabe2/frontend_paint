@@ -301,6 +301,7 @@ export default function ActPage() {
                         const isExpanded = expandedGroups[requestName] ?? true;
                         const allSelected = atmGroup.every((a) => selected.includes(a.id));
                         const someSelected = atmGroup.some((a) => selected.includes(a.id));
+                        const paintShop = atmGroup[0]?.paint || "—";
 
                         return (
                           <div key={requestName} className="border-b border-blue-100 last:border-b-0">
@@ -318,6 +319,11 @@ export default function ActPage() {
                                 <span className="font-bold text-slate-800 text-xs truncate">
                                   {requestName}
                                 </span>
+                                  {paintShop && (
+                                    <span className="text-xs text-emerald-600 ml-2">
+                                      {paintShop}
+                                    </span>
+                                  )}
                                 <span className="text-xs text-slate-500 flex-shrink-0">
                                   ({atmGroup.filter(a => selected.includes(a.id)).length}/{atmGroup.length})
                                 </span>

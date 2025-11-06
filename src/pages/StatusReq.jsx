@@ -351,6 +351,7 @@ export default function StatusReq() {
                                 )}
                             </button>
                         </div>
+
                         {hasUnsavedChanges && !saving && (
                             <span
                                 className="text-xs text-amber-600 font-semibold flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200">
@@ -359,6 +360,7 @@ export default function StatusReq() {
               </span>
                         )}
                     </div>
+
                 </div>
             </div>
 

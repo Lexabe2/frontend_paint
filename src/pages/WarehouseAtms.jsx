@@ -1,5 +1,19 @@
 import {useEffect, useState} from "react";
-import {Package, AlertCircle, PlusCircle, X, Warehouse, FileText, Calendar, Hash, Building2, Clock, CheckCircle2, Loader2, CreditCard} from "lucide-react";
+import {
+    Package,
+    AlertCircle,
+    PlusCircle,
+    X,
+    Warehouse,
+    FileText,
+    ChevronDown,
+    Hash,
+    Building2,
+    Clock,
+    CheckCircle2,
+    Loader2,
+    CreditCard
+} from "lucide-react";
 import api from "../api/axios";
 
 export default function WarehouseAtms() {
@@ -13,6 +27,7 @@ export default function WarehouseAtms() {
     const [projectData, setProjectData] = useState([]);
     const [req, setReq] = useState(0);
     const [creating, setCreating] = useState(false);
+    const [paintShop, setPaintShop] = useState("");
 
     // Загрузка банкоматов и данных проектов
     const fetchAtms = async () => {
@@ -67,7 +82,8 @@ export default function WarehouseAtms() {
                 project: selectedProject,
                 device: "Hyosung",
                 quantity: countAtm,
-                status: 'На согласование(покрасочная)'
+                status: 'На согласование(покрасочная)',
+                paint_shop: paintShop,
             };
 
             await api.post("/requests/", payload, {
@@ -103,14 +119,21 @@ export default function WarehouseAtms() {
         }
     };
 
+    const paintOptions = [
+        {value: "aparinki", label: "Апаринки"},
+        {value: "konstantinovo", label: "Константиново"},
+        {value: "fokin", label: "Фокин"},
+    ];
+
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-8">
             {/* Header Section */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-8 border border-blue-100">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                     <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                            <Warehouse className="w-8 h-8 text-white" />
+                        <div
+                            className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                            <Warehouse className="w-8 h-8 text-white"/>
                         </div>
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">Склад банкоматов</h1>
@@ -122,7 +145,7 @@ export default function WarehouseAtms() {
                         onClick={() => setIsModalOpen(true)}
                         className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
-                        <PlusCircle className="w-5 h-5" />
+                        <PlusCircle className="w-5 h-5"/>
                         <span>Создать заявку</span>
                     </button>
                 </div>
@@ -130,10 +153,11 @@ export default function WarehouseAtms() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-200">
+                <div
+                    className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-200">
                     <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                            <Package className="w-6 h-6 text-green-600" />
+                            <Package className="w-6 h-6 text-green-600"/>
                         </div>
                         <div>
                             <p className="text-sm text-gray-600 font-medium">Всего на складе</p>
@@ -142,10 +166,11 @@ export default function WarehouseAtms() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-200">
+                <div
+                    className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-200">
                     <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <CheckCircle2 className="w-6 h-6 text-blue-600" />
+                            <CheckCircle2 className="w-6 h-6 text-blue-600"/>
                         </div>
                         <div>
                             <p className="text-sm text-gray-600 font-medium">Доступно</p>
@@ -154,10 +179,11 @@ export default function WarehouseAtms() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-200">
+                <div
+                    className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-200">
                     <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                            <FileText className="w-6 h-6 text-purple-600" />
+                            <FileText className="w-6 h-6 text-purple-600"/>
                         </div>
                         <div>
                             <p className="text-sm text-gray-600 font-medium">Последняя заявка</p>
@@ -170,17 +196,19 @@ export default function WarehouseAtms() {
             {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-3xl p-8 w-full max-w-lg relative shadow-2xl border border-gray-100">
+                    <div
+                        className="bg-white rounded-3xl p-8 w-full max-w-lg relative shadow-2xl border border-gray-100">
                         <button
                             className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors duration-200"
                             onClick={() => setIsModalOpen(false)}
                         >
-                            <X className="w-5 h-5" />
+                            <X className="w-5 h-5"/>
                         </button>
 
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <FileText className="w-8 h-8 text-white" />
+                            <div
+                                className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <FileText className="w-8 h-8 text-white"/>
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-2">Создать заявку</h3>
                             <p className="text-gray-600">Заполните данные для новой заявки</p>
@@ -190,7 +218,7 @@ export default function WarehouseAtms() {
                             {/* Количество */}
                             <div className="space-y-2">
                                 <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
-                                    <Hash className="w-4 h-4 text-gray-500" />
+                                    <Hash className="w-4 h-4 text-gray-500"/>
                                     <span>Количество устройств</span>
                                 </label>
                                 <div className="relative">
@@ -204,25 +232,28 @@ export default function WarehouseAtms() {
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
                                     />
                                     <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                        <Hash className="w-4 h-4 text-gray-400" />
+                                        <Hash className="w-4 h-4 text-gray-400"/>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-gray-600">Доступно: {countAtmData}</span>
-                                    <span className="text-blue-600 font-medium">Остается: {countAtmData - countAtm}</span>
+                                    <span
+                                        className="text-blue-600 font-medium">Остается: {countAtmData - countAtm}</span>
                                 </div>
                             </div>
 
                             {/* Номер заявки */}
                             <div className="space-y-2">
                                 <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
-                                    <FileText className="w-4 h-4 text-gray-500" />
+                                    <FileText className="w-4 h-4 text-gray-500"/>
                                     <span>Номер заявки</span>
                                 </label>
-                                <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl">
+                                <div
+                                    className="px-4 py-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl">
                                     <div className="flex items-center space-x-3">
-                                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                                            <FileText className="w-4 h-4 text-purple-600" />
+                                        <div
+                                            className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                            <FileText className="w-4 h-4 text-purple-600"/>
                                         </div>
                                         <div>
                                             <p className="font-semibold text-purple-800">#{req}</p>
@@ -235,7 +266,7 @@ export default function WarehouseAtms() {
                             {/* Проект */}
                             <div className="space-y-2">
                                 <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
-                                    <Building2 className="w-4 h-4 text-gray-500" />
+                                    <Building2 className="w-4 h-4 text-gray-500"/>
                                     <span>Проект</span>
                                 </label>
                                 <div className="relative">
@@ -248,7 +279,7 @@ export default function WarehouseAtms() {
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
                                     />
                                     <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                        <Building2 className="w-4 h-4 text-gray-400" />
+                                        <Building2 className="w-4 h-4 text-gray-400"/>
                                     </div>
                                 </div>
                                 <datalist id="projects-list">
@@ -267,7 +298,7 @@ export default function WarehouseAtms() {
                                         <div className="space-y-1">
                                             {projectData.slice(0, 3).map((proj, idx) => (
                                                 <div key={idx} className="flex items-center space-x-2">
-                                                    <Clock className="w-3 h-3 text-gray-400" />
+                                                    <Clock className="w-3 h-3 text-gray-400"/>
                                                     <span>{proj.project}</span>
                                                     {proj.deadlines && (
                                                         <span className="text-orange-600">({proj.deadlines} дней)</span>
@@ -277,22 +308,46 @@ export default function WarehouseAtms() {
                                         </div>
                                     </div>
                                 )}
+                                <div className="space-y-2">
+                                    <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                                        <FileText className="w-4 h-4 text-gray-500"/>
+                                        <span>Покрасочная</span>
+                                    </label>
+
+                                    <div className="relative">
+                                        <select
+                                            value={paintShop}
+                                            onChange={(e) => setPaintShop(e.target.value)}
+                                            className="w-full appearance-none px-4 py-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl font-semibold text-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
+                                        >
+                                            <option value="">Выберите покрасочную...</option>
+                                            {paintOptions.map((opt) => (
+                                                <option key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <ChevronDown
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-500 pointer-events-none"/>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Кнопка создания */}
                             <button
                                 onClick={handleCreateRequest}
-                                disabled={creating || !selectedProject.trim() || countAtm <= 0}
+                                disabled={creating || !selectedProject.trim() || countAtm <= 0 || paintShop === ''}
                                 className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl"
                             >
                                 {creating ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <Loader2 className="w-4 h-4 animate-spin"/>
                                         <span>Создание заявки...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <PlusCircle className="w-4 h-4" />
+                                        <PlusCircle className="w-4 h-4"/>
                                         <span>Создать заявку</span>
                                     </>
                                 )}
@@ -306,14 +361,14 @@ export default function WarehouseAtms() {
             {loading ? (
                 <div className="bg-white rounded-3xl shadow-xl p-12 text-center border border-gray-100">
                     <div className="flex flex-col items-center space-y-4">
-                        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-blue-600 animate-spin"/>
                         <p className="text-gray-600 font-medium">Загрузка данных...</p>
                     </div>
                 </div>
             ) : error ? (
                 <div className="bg-white rounded-3xl shadow-xl p-8 border border-red-200">
                     <div className="flex items-center space-x-3 text-red-600">
-                        <AlertCircle className="w-6 h-6" />
+                        <AlertCircle className="w-6 h-6"/>
                         <div>
                             <h3 className="font-semibold">Ошибка загрузки</h3>
                             <p className="text-sm">{error}</p>
@@ -325,7 +380,7 @@ export default function WarehouseAtms() {
                     {/* Table Header */}
                     <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-200">
                         <div className="flex items-center space-x-3">
-                            <Package className="w-6 h-6 text-blue-600" />
+                            <Package className="w-6 h-6 text-blue-600"/>
                             <h2 className="text-xl font-bold text-gray-900">Список устройств</h2>
                             <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
                                 {atms.length} устройств
@@ -340,61 +395,65 @@ export default function WarehouseAtms() {
                             <div className="hidden md:block overflow-x-auto">
                                 <table className="w-full">
                                     <thead className="bg-gray-50 border-b border-gray-200">
-                                        <tr>
-                                            <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
-                                                <div className="flex items-center space-x-2">
-                                                    <Hash className="w-4 h-4 text-gray-500" />
-                                                    <span>Серийный номер</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
-                                                <div className="flex items-center space-x-2">
-                                                    <Package className="w-4 h-4 text-gray-500" />
-                                                    <span>Модель</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
-                                                <div className="flex items-center space-x-2">
-                                                    <Warehouse className="w-4 h-4 text-gray-500" />
-                                                    <span>Паллет</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
-                                                <div className="flex items-center space-x-2">
-                                                    <CheckCircle2 className="w-4 h-4 text-gray-500" />
-                                                    <span>Статус</span>
-                                                </div>
-                                            </th>
-                                        </tr>
+                                    <tr>
+                                        <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
+                                            <div className="flex items-center space-x-2">
+                                                <Hash className="w-4 h-4 text-gray-500"/>
+                                                <span>Серийный номер</span>
+                                            </div>
+                                        </th>
+                                        <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
+                                            <div className="flex items-center space-x-2">
+                                                <Package className="w-4 h-4 text-gray-500"/>
+                                                <span>Модель</span>
+                                            </div>
+                                        </th>
+                                        <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
+                                            <div className="flex items-center space-x-2">
+                                                <Warehouse className="w-4 h-4 text-gray-500"/>
+                                                <span>Паллет</span>
+                                            </div>
+                                        </th>
+                                        <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
+                                            <div className="flex items-center space-x-2">
+                                                <CheckCircle2 className="w-4 h-4 text-gray-500"/>
+                                                <span>Статус</span>
+                                            </div>
+                                        </th>
+                                    </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
-                                        {atms.map((atm, index) => (
-                                            <tr key={atm.id} className="hover:bg-gray-50 transition-colors duration-150">
-                                                <td className="px-8 py-4">
-                                                    <div className="flex items-center space-x-3">
-                                                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                            <span className="text-blue-600 font-bold text-sm">{index + 1}</span>
-                                                        </div>
-                                                        <span className="font-mono text-gray-900 font-medium">{atm.serial_number}</span>
+                                    {atms.map((atm, index) => (
+                                        <tr key={atm.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                            <td className="px-8 py-4">
+                                                <div className="flex items-center space-x-3">
+                                                    <div
+                                                        className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                        <span
+                                                            className="text-blue-600 font-bold text-sm">{index + 1}</span>
                                                     </div>
-                                                </td>
-                                                <td className="px-8 py-4">
-                                                    <span className="text-gray-900 font-medium">{atm.model}</span>
-                                                </td>
-                                                <td className="px-8 py-4">
-                                                    <div className="flex items-center space-x-2">
-                                                        <Package className="w-4 h-4 text-gray-500" />
-                                                        <span className="text-gray-900 font-medium">{atm.pallet}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-4">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(atm.status)}`}>
+                                                    <span
+                                                        className="font-mono text-gray-900 font-medium">{atm.serial_number}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-4">
+                                                <span className="text-gray-900 font-medium">{atm.model}</span>
+                                            </td>
+                                            <td className="px-8 py-4">
+                                                <div className="flex items-center space-x-2">
+                                                    <Package className="w-4 h-4 text-gray-500"/>
+                                                    <span className="text-gray-900 font-medium">{atm.pallet}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-4">
+                                                    <span
+                                                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(atm.status)}`}>
                                                         <div className="w-2 h-2 rounded-full bg-current mr-2"></div>
                                                         {atm.status}
                                                     </span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                            </td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -402,16 +461,20 @@ export default function WarehouseAtms() {
                             {/* Mobile Cards */}
                             <div className="md:hidden space-y-4 p-4">
                                 {atms.map((atm, index) => (
-                                    <div key={atm.id} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                    <div key={atm.id}
+                                         className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
                                         {/* Header with number and status */}
                                         <div className="flex items-center justify-between mb-3">
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                <div
+                                                    className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                                                     <span className="text-blue-600 font-bold text-sm">{index + 1}</span>
                                                 </div>
-                                                <span className="text-sm text-gray-500 font-medium">Устройство #{index + 1}</span>
+                                                <span
+                                                    className="text-sm text-gray-500 font-medium">Устройство #{index + 1}</span>
                                             </div>
-                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(atm.status)}`}>
+                                            <span
+                                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(atm.status)}`}>
                                                 <div className="w-1.5 h-1.5 rounded-full bg-current mr-1"></div>
                                                 {atm.status}
                                             </span>
@@ -421,8 +484,9 @@ export default function WarehouseAtms() {
                                         <div className="space-y-3">
                                             {/* Serial Number */}
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                                    <Hash className="w-4 h-4 text-gray-600" />
+                                                <div
+                                                    className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                    <Hash className="w-4 h-4 text-gray-600"/>
                                                 </div>
                                                 <div className="flex-1">
                                                     <p className="text-xs text-gray-500 font-medium">Серийный номер</p>
@@ -432,8 +496,9 @@ export default function WarehouseAtms() {
 
                                             {/* Model */}
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                                                    <CreditCard className="w-4 h-4 text-purple-600" />
+                                                <div
+                                                    className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                                    <CreditCard className="w-4 h-4 text-purple-600"/>
                                                 </div>
                                                 <div className="flex-1">
                                                     <p className="text-xs text-gray-500 font-medium">Модель</p>
@@ -443,8 +508,9 @@ export default function WarehouseAtms() {
 
                                             {/* Pallet */}
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                                                    <Package className="w-4 h-4 text-green-600" />
+                                                <div
+                                                    className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                                    <Package className="w-4 h-4 text-green-600"/>
                                                 </div>
                                                 <div className="flex-1">
                                                     <p className="text-xs text-gray-500 font-medium">Паллет</p>
@@ -458,8 +524,9 @@ export default function WarehouseAtms() {
                         </>
                     ) : (
                         <div className="p-12 text-center">
-                            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <Package className="w-8 h-8 text-gray-400" />
+                            <div
+                                className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <Package className="w-8 h-8 text-gray-400"/>
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">Нет устройств на складе</h3>
                             <p className="text-gray-600">Устройства появятся здесь после добавления на склад</p>
