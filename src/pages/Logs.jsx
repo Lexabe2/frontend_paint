@@ -338,15 +338,12 @@ export default function LogConsole() {
                     </div>
                 ) : (
                     <div className="space-y-0.5 font-mono text-[11px]">
-                        {filteredLogs.map((line, i) => (
+                        {filteredLogs.map((block, i) => (
                             <div
                                 key={i}
-                                className={`${getLogColor(line)} leading-relaxed hover:brightness-110 px-3 py-2 rounded-lg transition-all border border-transparent hover:border-slate-700/50`}
+                                className={`${getLogColor(block)} leading-relaxed hover:brightness-110 px-3 py-2 rounded-lg transition-all border border-transparent hover:border-slate-700/50`}
                             >
-                                <div className="flex items-start gap-2">
-                                    <span className="select-none flex-shrink-0 mt-0.5">{getLogIcon(line)}</span>
-                                    <span className="break-all flex-1">{line}</span>
-                                </div>
+                                <pre className="whitespace-pre-wrap font-mono">{block}</pre>
                             </div>
                         ))}
                     </div>
