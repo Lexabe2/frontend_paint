@@ -5,7 +5,6 @@ import * as XLSX from "xlsx";
 import {saveAs} from "file-saver";
 import {
     ArrowLeft,
-    Download,
     Filter,
     CheckSquare,
     Square,
@@ -16,6 +15,7 @@ import {
     DollarSign,
     AlertCircle,
     Calendar,
+    FileText,
 } from "lucide-react";
 
 export default function FlowDetail() {
@@ -27,6 +27,7 @@ export default function FlowDetail() {
     const [statusFilter, setStatusFilter] = useState("");
     const [paidFilter, setPaidFilter] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
+    const [invoiceNumberFilter, setInvoiceNumberFilter] = useState("");
 
     const [selectedIds, setSelectedIds] = useState([]);
     const [selectCount, setSelectCount] = useState("");
@@ -34,6 +35,8 @@ export default function FlowDetail() {
     const [bulkPaymentValue, setBulkPaymentValue] = useState("");
     const [bulkIssueDate, setBulkIssueDate] = useState("");
     const [bulkSigningDate, setBulkSigningDate] = useState("");
+    const [bulkStatus, setBulkStatus] = useState("");
+    const [bulkNote, setBulkNote] = useState("");
     const [applyingBulk, setApplyingBulk] = useState(false);
 
     useEffect(() => {
@@ -54,23 +57,28 @@ export default function FlowDetail() {
     }, [flowId]);
 
     const filteredSerials = useMemo(() => {
-        return flow.serial_numbers.filter((sn) => {
-            let statusMatch = !statusFilter || sn.status === statusFilter;
-            let paidMatch = true;
-            if (paidFilter) {
-                paidMatch =
-                    paidFilter === "paid"
-                        ? sn.atm?.invoice_paid === true
-                        : sn.atm?.invoice_paid === false;
-            }
-            let searchMatch =
-                !searchQuery ||
-                sn.sn?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                sn.act_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                String(sn.number).includes(searchQuery);
-            return statusMatch && paidMatch && searchMatch;
-        });
-    }, [flow.serial_numbers, statusFilter, paidFilter, searchQuery]);
+        return flow.serial_numbers
+            .filter((sn) => {
+                let statusMatch = !statusFilter || sn.status === statusFilter;
+                let paidMatch = true;
+                if (paidFilter) {
+                    paidMatch =
+                        paidFilter === "paid"
+                            ? sn.atm?.invoice_paid === true
+                            : sn.atm?.invoice_paid === false;
+                }
+                let searchMatch =
+                    !searchQuery ||
+                    sn.sn?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    sn.act_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    String(sn.number).includes(searchQuery);
+                let invoiceMatch =
+                    !invoiceNumberFilter ||
+                    sn.atm?.paint_number?.toLowerCase().includes(invoiceNumberFilter.toLowerCase());
+                return statusMatch && paidMatch && searchMatch && invoiceMatch;
+            })
+            .sort((a, b) => (a.number || 0) - (b.number || 0));
+    }, [flow.serial_numbers, statusFilter, paidFilter, searchQuery, invoiceNumberFilter]);
 
     const handleCheck = (id) => {
         setSelectedIds((prev) =>
@@ -105,7 +113,7 @@ export default function FlowDetail() {
                 "Дата выставления": sn.issue_date,
                 "Дата подписания": sn.signing_date,
                 "Оплата Яковлеву": sn.payment_to_yakovlev,
-                "Примечание": sn.note,
+                "ATM модель": sn.atm?.model,
                 "ATM статус": sn.atm?.status,
                 "Номер счета": sn.atm?.paint_number,
                 "Счет оплачен": sn.atm?.invoice_paid ? "Да" : "Нет",
@@ -163,7 +171,7 @@ export default function FlowDetail() {
         }
         setApplyingBulk(true);
         try {
-            await api.patch("/update_dates/", {
+            await api.patch("/update_dates_flow/", {
                 ids: selectedIds,
                 issue_date: bulkIssueDate,
                 signing_date: bulkSigningDate,
@@ -185,19 +193,76 @@ export default function FlowDetail() {
         }
     };
 
+    const applyBulkStatus = async () => {
+        if (selectedIds.length === 0) {
+            alert("Выберите хотя бы один серийный номер!");
+            return;
+        }
+        if (!bulkStatus) {
+            alert("Укажите статус!");
+            return;
+        }
+        setApplyingBulk(true);
+        try {
+            await api.patch("/update_status_flow/", {
+                ids: selectedIds,
+                status: bulkStatus,
+            });
+            alert("Статус успешно обновлен!");
+            const res = await api.get(`/flow_detail/${flowId}/`);
+            setFlow({
+                ...res.data,
+                serial_numbers: res.data.serial_numbers || [],
+            });
+            setBulkStatus("");
+            setSelectedIds([]);
+        } catch (err) {
+            console.error(err);
+            alert("Ошибка при сохранении данных");
+        } finally {
+            setApplyingBulk(false);
+        }
+    };
+
+    const applyBulkNote = async () => {
+        if (selectedIds.length === 0) {
+            alert("Выберите хотя бы один серийный номер!");
+            return;
+        }
+        if (!bulkNote.trim()) {
+            alert("Укажите примечание!");
+            return;
+        }
+        setApplyingBulk(true);
+        try {
+            await api.patch("/update_note_flow/", {
+                ids: selectedIds,
+                note: bulkNote,
+            });
+            alert("Примечание успешно добавлено!");
+            const res = await api.get(`/flow_detail/${flowId}/`);
+            setFlow({
+                ...res.data,
+                serial_numbers: res.data.serial_numbers || [],
+            });
+            setBulkNote("");
+            setSelectedIds([]);
+        } catch (err) {
+            console.error(err);
+            alert("Ошибка при сохранении данных");
+        } finally {
+            setApplyingBulk(false);
+        }
+    };
+
     const clearFilters = () => {
         setStatusFilter("");
         setPaidFilter("");
         setSearchQuery("");
+        setInvoiceNumberFilter("");
     };
 
-    function formatDate(dateStr) {
-        if (!dateStr) return "-";
-        const date = new Date(dateStr);
-        return isNaN(date) ? "-" : date.toLocaleDateString("ru-RU");
-    }
-
-    const hasActiveFilters = statusFilter || paidFilter || searchQuery;
+    const hasActiveFilters = statusFilter || paidFilter || searchQuery || invoiceNumberFilter;
 
     if (loading) {
         return (
@@ -211,7 +276,11 @@ export default function FlowDetail() {
     }
 
     const statusOptions = [
-        ...new Set(flow.serial_numbers.map((sn) => sn.status)),
+        "Не поступал",
+        "Получен",
+        "Окрашивается",
+        "Счет выставлен",
+        "Оплачен",
     ];
     const allSelected =
         selectedIds.length > 0 && selectedIds.length === filteredSerials.length;
@@ -282,6 +351,14 @@ export default function FlowDetail() {
                             <option value="not_paid">Не оплачено</option>
                         </select>
 
+                        <input
+                            type="text"
+                            value={invoiceNumberFilter}
+                            onChange={(e) => setInvoiceNumberFilter(e.target.value)}
+                            placeholder="Номер счета..."
+                            className="px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all min-w-[150px]"
+                        />
+
                         {hasActiveFilters && (
                             <button
                                 onClick={clearFilters}
@@ -298,93 +375,160 @@ export default function FlowDetail() {
             {selectedIds.length > 0 && (
                 <div className="bg-blue-50 border-b border-blue-200">
                     <div className="max-w-7xl mx-auto px-6 py-4">
-                        <div className="flex flex-col gap-3">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <CheckSquare className="w-5 h-5 text-blue-600"/>
-                                    <span className="text-sm font-medium text-blue-900">
-                    Выбрано: {selectedIds.length}
-                  </span>
-                                </div>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <CheckSquare className="w-5 h-5 text-blue-600"/>
+                                <span className="text-sm font-medium text-blue-900">
+                  Выбрано: {selectedIds.length}
+                </span>
+                            </div>
 
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={exportToExcel}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all font-medium"
+                                >
+                                    <FileDown className="w-4 h-4"/>
+                                    Экспорт
+                                </button>
+
+                                <button
+                                    onClick={() => setSelectedIds([])}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
+                                >
+                                    <X className="w-4 h-4"/>
+                                    Отменить
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            <div className="bg-white rounded-lg p-3 border border-blue-200">
+                                <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
+                                    Оплата Яковлеву
+                                </h3>
                                 <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={bulkPaymentValue}
+                                        onChange={(e) => setBulkPaymentValue(e.target.value)}
+                                        placeholder="Введите сумму"
+                                        className="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                    />
                                     <button
-                                        onClick={exportToExcel}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all font-medium"
+                                        onClick={applyBulkPayment}
+                                        disabled={applyingBulk || !bulkPaymentValue.trim()}
+                                        className="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
                                     >
-                                        <FileDown className="w-4 h-4"/>
-                                        Экспорт
-                                    </button>
-
-                                    <button
-                                        onClick={() => setSelectedIds([])}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
-                                    >
-                                        <X className="w-4 h-4"/>
-                                        Отменить
+                                        {applyingBulk ? (
+                                            <Loader2 className="w-4 h-4 animate-spin"/>
+                                        ) : (
+                                            <>
+                                                <DollarSign className="w-4 h-4"/>
+                                                Применить
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <input
-                                    type="text"
-                                    value={bulkPaymentValue}
-                                    onChange={(e) => setBulkPaymentValue(e.target.value)}
-                                    placeholder="Оплата Яковлеву"
-                                    className="px-3 py-1.5 text-sm bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                />
-                                <button
-                                    onClick={applyBulkPayment}
-                                    disabled={applyingBulk || !bulkPaymentValue.trim()}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
-                                >
-                                    {applyingBulk ? (
-                                        <>
+                            <div className="bg-white rounded-lg p-3 border border-blue-200">
+                                <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
+                                    Даты
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="date"
+                                        value={bulkIssueDate}
+                                        onChange={(e) => setBulkIssueDate(e.target.value)}
+                                        className="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                        placeholder="Дата выставления"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={bulkSigningDate}
+                                        onChange={(e) => setBulkSigningDate(e.target.value)}
+                                        className="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                        placeholder="Дата подписания"
+                                    />
+                                    <button
+                                        onClick={applyBulkDates}
+                                        disabled={applyingBulk || (!bulkIssueDate && !bulkSigningDate)}
+                                        className="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+                                    >
+                                        {applyingBulk ? (
                                             <Loader2 className="w-4 h-4 animate-spin"/>
-                                            Сохранение...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <DollarSign className="w-4 h-4"/>
-                                            Применить оплату
-                                        </>
-                                    )}
-                                </button>
+                                        ) : (
+                                            <>
+                                                <Calendar className="w-4 h-4"/>
+                                                Применить
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
 
-                                <div className="h-6 w-px bg-blue-300"></div>
-
-                                <input
-                                    type="date"
-                                    value={bulkIssueDate}
-                                    onChange={(e) => setBulkIssueDate(e.target.value)}
-                                    className="px-3 py-1.5 text-sm bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                    placeholder="Дата выставления"
-                                />
-                                <input
-                                    type="date"
-                                    value={bulkSigningDate}
-                                    onChange={(e) => setBulkSigningDate(e.target.value)}
-                                    className="px-3 py-1.5 text-sm bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                    placeholder="Дата подписания"
-                                />
-                                <button
-                                    onClick={applyBulkDates}
-                                    disabled={applyingBulk || (!bulkIssueDate && !bulkSigningDate)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
-                                >
-                                    {applyingBulk ? (
-                                        <>
+                            <div className="bg-white rounded-lg p-3 border border-blue-200">
+                                <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
+                                    Статус
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        value={bulkStatus}
+                                        onChange={(e) => setBulkStatus(e.target.value)}
+                                        className="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                    >
+                                        <option value="">Выбрать статус</option>
+                                        {statusOptions.map((status) => (
+                                            <option key={status} value={status}>
+                                                {status}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        onClick={applyBulkStatus}
+                                        disabled={applyingBulk || !bulkStatus}
+                                        className="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+                                    >
+                                        {applyingBulk ? (
                                             <Loader2 className="w-4 h-4 animate-spin"/>
-                                            Сохранение...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Calendar className="w-4 h-4"/>
-                                            Применить даты
-                                        </>
-                                    )}
-                                </button>
+                                        ) : (
+                                            <>
+                                                <Filter className="w-4 h-4"/>
+                                                Применить
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-lg p-3 border border-blue-200">
+                                <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
+                                    Примечание
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={bulkNote}
+                                        onChange={(e) => setBulkNote(e.target.value)}
+                                        placeholder="Введите примечание"
+                                        className="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                    />
+                                    <button
+                                        onClick={applyBulkNote}
+                                        disabled={applyingBulk || !bulkNote.trim()}
+                                        className="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+                                    >
+                                        {applyingBulk ? (
+                                            <Loader2 className="w-4 h-4 animate-spin"/>
+                                        ) : (
+                                            <>
+                                                <FileText className="w-4 h-4"/>
+                                                Применить
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -479,6 +623,9 @@ export default function FlowDetail() {
                                         Статус
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                                        Примечание
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                                         Номер акта
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-slate-700">
@@ -491,7 +638,7 @@ export default function FlowDetail() {
                                         Оплата Яковлеву
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-slate-700">
-                                        Примечание
+                                        ATM модель
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-slate-700">
                                         ATM статус
@@ -539,19 +686,22 @@ export default function FlowDetail() {
                         </span>
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
+                                            {sn.note || "-"}
+                                        </td>
+                                        <td className="px-4 py-3 text-slate-700">
                                             {sn.act_number || "-"}
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
-                                            {formatDate(sn.issue_date)}
+                                            {sn.issue_date || "-"}
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
-                                            {formatDate(sn.signing_date)}
+                                            {sn.signing_date || "-"}
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
                                             {sn.payment_to_yakovlev || "-"}
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
-                                            {sn.note || "-"}
+                                            {sn.atm?.model || "-"}
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
                                             {sn.atm?.status || "-"}
