@@ -70,7 +70,7 @@ export default function FlowDetail() {
                 let searchMatch =
                     !searchQuery ||
                     sn.sn?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    sn.act_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    sn.note?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                     String(sn.number).includes(searchQuery);
                 let invoiceMatch =
                     !invoiceNumberFilter ||
@@ -109,16 +109,12 @@ export default function FlowDetail() {
                 "№": sn.number,
                 "S/N": sn.sn,
                 Статус: sn.status,
-                "Номер акта": sn.act_number,
                 "Дата выставления": sn.issue_date,
                 "Дата подписания": sn.signing_date,
                 "Оплата Яковлеву": sn.payment_to_yakovlev,
-                "ATM модель": sn.atm?.model,
                 "ATM статус": sn.atm?.status,
                 "Номер счета": sn.atm?.paint_number,
-                "Счет оплачен": sn.atm?.invoice_paid ? "Да" : "Нет",
-                "Файл счета": sn.atm?.invoice_file || "",
-                "Файл счета (подписанный)": sn.atm?.invoice_signature_file || "",
+                "Счет подписан": sn.atm?.invoice_paid ? "Да" : "Нет",
             }));
 
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -327,7 +323,13 @@ export default function FlowDetail() {
                                 className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
                             />
                         </div>
-
+                        <input
+                            type="text"
+                            value={invoiceNumberFilter}
+                            onChange={(e) => setInvoiceNumberFilter(e.target.value)}
+                            placeholder="Номер счета..."
+                            className="px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all min-w-[150px]"
+                        />
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
@@ -351,13 +353,6 @@ export default function FlowDetail() {
                             <option value="not_paid">Не оплачено</option>
                         </select>
 
-                        <input
-                            type="text"
-                            value={invoiceNumberFilter}
-                            onChange={(e) => setInvoiceNumberFilter(e.target.value)}
-                            placeholder="Номер счета..."
-                            className="px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all min-w-[150px]"
-                        />
 
                         {hasActiveFilters && (
                             <button
@@ -626,9 +621,6 @@ export default function FlowDetail() {
                                         Примечание
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-slate-700">
-                                        Номер акта
-                                    </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                                         Дата выставления
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-slate-700">
@@ -636,9 +628,6 @@ export default function FlowDetail() {
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-slate-700">
                                         Оплата Яковлеву
-                                    </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
-                                        ATM модель
                                     </th>
                                     <th className="px-4 py-3 text-left font-semibold text-slate-700">
                                         ATM статус
@@ -689,19 +678,13 @@ export default function FlowDetail() {
                                             {sn.note || "-"}
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
-                                            {sn.act_number || "-"}
+                                            {sn.issue_date ? new Date(sn.issue_date).toLocaleDateString('ru-RU') : "-"}
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
-                                            {sn.issue_date || "-"}
-                                        </td>
-                                        <td className="px-4 py-3 text-slate-700">
-                                            {sn.signing_date || "-"}
+                                            {sn.signing_date ? new Date(sn.signing_date).toLocaleDateString('ru-RU') : "-"}
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
                                             {sn.payment_to_yakovlev || "-"}
-                                        </td>
-                                        <td className="px-4 py-3 text-slate-700">
-                                            {sn.atm?.model || "-"}
                                         </td>
                                         <td className="px-4 py-3 text-slate-700">
                                             {sn.atm?.status || "-"}

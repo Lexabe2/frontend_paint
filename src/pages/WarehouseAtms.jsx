@@ -187,7 +187,7 @@ export default function WarehouseAtms() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-600 font-medium">Последняя заявка</p>
-                            <p className="text-2xl font-bold text-gray-900">#{req}</p>
+                            <p className="text-2xl font-bold text-gray-900">#{req - 1}</p>
                         </div>
                     </div>
                 </div>
