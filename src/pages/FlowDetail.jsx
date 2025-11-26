@@ -589,7 +589,7 @@ export default function FlowDetail() {
                             </p>
                         </div>
                     ) : (
-                        <div className="max-h-[150px] overflow-y-auto">
+                        <div className="max-h-[500px] overflow-y-auto">
                             <table className="min-w-full text-sm">
                                 <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                                 <tr>
