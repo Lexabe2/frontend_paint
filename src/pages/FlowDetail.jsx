@@ -17,6 +17,7 @@ import {
     Calendar,
     FileText,
 } from "lucide-react";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function FlowDetail() {
     const {flowId} = useParams();
@@ -261,14 +262,7 @@ export default function FlowDetail() {
     const hasActiveFilters = statusFilter || paidFilter || searchQuery || invoiceNumberFilter;
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 text-slate-400 animate-spin"/>
-                    <p className="text-slate-600 font-medium">Загрузка потока...</p>
-                </div>
-            </div>
-        );
+        return <LoadingSpinner message="Загрузка потока..."/>;
     }
 
     const statusOptions = [
@@ -589,7 +583,7 @@ export default function FlowDetail() {
                             </p>
                         </div>
                     ) : (
-                        <div className="max-h-[500px] overflow-y-auto">
+                        <div className="max-h-[600px] overflow-y-auto">
                             <table className="min-w-full text-sm">
                                 <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                                 <tr>
