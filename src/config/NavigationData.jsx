@@ -11,7 +11,10 @@ import {
     SprayCan,
     Warehouse,
     Pencil,
-    Banknote
+    Banknote,
+    PencilRuler,
+    Sticker,
+    ArrowUpDown
 } from "lucide-react"
 
 export const navigationGroups = {
@@ -95,7 +98,7 @@ export const navigationGroups = {
             {
                 id: "change_status_atm",
                 label: "Статус банкомата",
-                icon: Banknote,
+                icon: PencilRuler,
                 color: "from-green-500 to-emerald-500",
                 permission: "registration_receive_war",
                 path: "/change_status_atm",
@@ -104,10 +107,19 @@ export const navigationGroups = {
             {
                 id: "act",
                 label: "Акты",
-                icon: Banknote,
+                icon: Sticker,
                 color: "from-green-500 to-emerald-500",
                 permission: "registration_receive_war",
                 path: "/act",
+                category: 'warehouse'
+            },
+            {
+                id: "flow",
+                label: "Потоки",
+                icon: ArrowUpDown,
+                color: "from-green-500 to-emerald-500",
+                permission: "registration_receive_war",
+                path: "/flow",
                 category: 'warehouse'
             },
         ],

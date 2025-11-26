@@ -17,6 +17,7 @@
     "axios": "^1.12.2",
     "browser-image-compression": "^2.0.2",
     "dynamsoft-javascript-barcode": "^9.6.42",
+    "file-saver": "^2.0.5",
     "framer-motion": "^12.12.1",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.511.0",
