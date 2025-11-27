@@ -7,17 +7,12 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import {Menu} from "lucide-react";
 import {
     ArrowLeft,
-    Filter,
     CheckSquare,
     Square,
-    Loader2,
     Search,
     X,
     FileDown,
-    DollarSign,
     AlertCircle,
-    Calendar,
-    FileText,
 } from "lucide-react";
 
 export default function FlowDetail() {
@@ -268,7 +263,12 @@ export default function FlowDetail() {
     }
 
     const statusOptions = [
-        ...new Set(flow.serial_numbers.map((sn) => sn.status)),
+        "Не поступал",
+        "Получен",
+        "Окрашивается",
+        "Счет выставлен",
+        "Ожидает оплаты",
+        "Оплачен",
     ];
     const allSelected =
         selectedIds.length > 0 && selectedIds.length === filteredSerials.length;
