@@ -74,7 +74,7 @@ export default function FlowDetail() {
                 let searchMatch =
                     !searchQuery ||
                     sn.sn?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    sn.act_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    sn.note?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                     String(sn.number).includes(searchQuery);
                 let invoiceMatch =
                     !invoiceNumberFilter ||
