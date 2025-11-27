@@ -325,7 +325,7 @@ export default function FlowDetail() {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Поиск по S/N, номеру акта..."
+                                placeholder="Поиск по S/N, примечанию..."
                                 className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
                             />
                         </div>
@@ -697,10 +697,10 @@ export default function FlowDetail() {
                                                 {sn.note || "-"}
                                             </td>
                                             <td className="px-4 py-3 text-slate-700">
-                                                {sn.issue_date || "-"}
+                                                {sn.issue_date ? sn.issue_date.split('-').reverse().join('.') : "-"}
                                             </td>
                                             <td className="px-4 py-3 text-slate-700">
-                                                {sn.signing_date || "-"}
+                                                {sn.signing_date ? sn.signing_date.split('-').reverse().join('.') : "-"}
                                             </td>
                                             <td className="px-4 py-3 text-slate-700">
                                                 {sn.payment_to_yakovlev || "-"}
