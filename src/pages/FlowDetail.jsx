@@ -41,7 +41,6 @@ export default function FlowDetail() {
     const [bulkNote, setBulkNote] = useState("");
     const [applyingBulk, setApplyingBulk] = useState(false);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
-    const [showBulkActions, setShowBulkActions] = useState(false);
 
     useEffect(() => {
         const fetchFlow = async () => {
@@ -113,16 +112,12 @@ export default function FlowDetail() {
                 "№": sn.number,
                 "S/N": sn.sn,
                 Статус: sn.status,
-                "Номер акта": sn.act_number,
-                "Дата выставления": sn.issue_date,
-                "Дата подписания": sn.signing_date,
+                "Дата выставления": sn.issue_date ? sn.issue_date.split('-').reverse().join('.') : "",
+                "Дата подписания": sn.signing_date ? sn.signing_date.split('-').reverse().join('.') : "",
                 "Оплата Яковлеву": sn.payment_to_yakovlev,
-                "ATM модель": sn.atm?.model,
                 "ATM статус": sn.atm?.status,
                 "Номер счета": sn.atm?.paint_number,
                 "Счет оплачен": sn.atm?.invoice_paid ? "Да" : "Нет",
-                "Файл счета": sn.atm?.invoice_file || "",
-                "Файл счета (подписанный)": sn.atm?.invoice_signature_file || "",
             }));
 
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -387,17 +382,28 @@ export default function FlowDetail() {
                             <div className="flex items-center gap-2">
                                 <CheckSquare className="w-5 h-5 text-blue-600"/>
                                 <span className="text-sm font-semibold text-slate-800">
-            Выбрано: {selectedIds.length}
-          </span>
+      Выбрано: {selectedIds.length}
+    </span>
                             </div>
 
-                            <button
-                                onClick={() => setSelectedIds([])}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
-                            >
-                                <X className="w-4 h-4"/>
-                                Отменить
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {/* Экспорт — видно только на sm+ (мобильный не захламляем) */}
+                                <button
+                                    onClick={exportToExcel}
+                                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
+                                >
+                                    <FileDown className="w-4 h-4"/>
+                                    Экспорт
+                                </button>
+
+                                <button
+                                    onClick={() => setSelectedIds([])}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
+                                >
+                                    <X className="w-4 h-4"/>
+                                    Отменить
+                                </button>
+                            </div>
                         </div>
 
                         {/* Действия */}
