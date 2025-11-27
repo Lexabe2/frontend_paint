@@ -144,7 +144,7 @@ export default function FlowDetail() {
         }
         setApplyingBulk(true);
         try {
-            await api.patch("/update_payment/", {
+            await api.patch("/bulk_update_flow/", {
                 ids: selectedIds,
                 value: bulkPaymentValue,
             });
@@ -175,7 +175,7 @@ export default function FlowDetail() {
         }
         setApplyingBulk(true);
         try {
-            await api.patch("/update_dates/", {
+            await api.patch("/bulk_update_flow/", {
                 ids: selectedIds,
                 issue_date: bulkIssueDate,
                 signing_date: bulkSigningDate,
@@ -208,7 +208,7 @@ export default function FlowDetail() {
         }
         setApplyingBulk(true);
         try {
-            await api.patch("/update_status/", {
+            await api.patch("/bulk_update_flow/", {
                 ids: selectedIds,
                 status: bulkStatus,
             });
@@ -239,7 +239,7 @@ export default function FlowDetail() {
         }
         setApplyingBulk(true);
         try {
-            await api.patch("/update_note/", {
+            await api.patch("/bulk_update_flow/", {
                 ids: selectedIds,
                 note: bulkNote,
             });
@@ -637,6 +637,9 @@ export default function FlowDetail() {
                                             Статус
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                                            Примечание
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-semibold text-slate-700">
                                             Дата выставления
                                         </th>
                                         <th className="px-4 py-3 text-left font-semibold text-slate-700">
@@ -689,6 +692,9 @@ export default function FlowDetail() {
                             className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-700">
                           {sn.status || "-"}
                         </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-slate-700">
+                                                {sn.note || "-"}
                                             </td>
                                             <td className="px-4 py-3 text-slate-700">
                                                 {sn.issue_date || "-"}
