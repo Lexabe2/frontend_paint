@@ -338,23 +338,28 @@ export default function FlowDetail() {
                             className="w-full md:w-auto px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all md:min-w-[150px]"
                         />
 
+                        {/* Статус */}
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full md:w-auto px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+                            className="h-10 px-4 pr-10 text-sm font-medium text-slate-700 bg-white border-2 border-slate-300 rounded-xl
+                                     focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10
+                                     hover:border-slate-400 transition-all cursor-pointer appearance-none
+                                     bg-[url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 9l6 6 6-6%22/%3E%3C/svg%3E')]
+                                     bg-no-repeat bg-[center_right_1rem]"
                         >
                             <option value="">Все статусы</option>
-                            {statusOptions.map((status) => (
-                                <option key={status} value={status}>
-                                    {status}
-                                </option>
-                            ))}
+                            {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
 
                         <select
                             value={paidFilter}
                             onChange={(e) => setPaidFilter(e.target.value)}
-                            className="w-full md:w-auto px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+                            className="h-10 px-4 pr-10 text-sm font-medium text-slate-700 bg-white border-2 border-slate-300 rounded-xl
+                                     focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10
+                                     hover:border-slate-400 transition-all cursor-pointer appearance-none
+                                     bg-[url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 9l6 6 6-6%22/%3E%3C/svg%3E')]
+                                     bg-no-repeat bg-[center_right_1rem]"
                         >
                             <option value="">Все счета</option>
                             <option value="paid">Оплачено</option>
@@ -375,170 +380,98 @@ export default function FlowDetail() {
             </div>
 
             {selectedIds.length > 0 && (
-                <div className="bg-blue-50 border-b border-blue-200">
-                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
-                        <div className="flex items-center justify-between mb-3 md:mb-4">
-                            <div className="flex items-center gap-2 md:gap-3">
-                                <CheckSquare className="w-4 h-4 md:w-5 md:h-5 text-blue-600"/>
-                                <span className="text-xs md:text-sm font-medium text-blue-900">
-                  Выбрано: {selectedIds.length}
-                </span>
-                            </div>
-
+                <div className="bg-slate-50/50 border-t border-slate-200">
+                    <div className="max-w-7xl mx-auto px-3 py-3">
+                        {/* Заголовок */}
+                        <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                                <button
-                                    onClick={exportToExcel}
-                                    className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all font-medium"
-                                >
-                                    <FileDown className="w-4 h-4"/>
-                                    Экспорт
-                                </button>
-
-                                <button
-                                    onClick={() => setShowBulkActions(!showBulkActions)}
-                                    className="md:hidden flex items-center gap-1.5 px-2 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium"
-                                >
-                                    <Menu className="w-3 h-3"/>
-                                </button>
-
-                                <button
-                                    onClick={() => setSelectedIds([])}
-                                    className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 text-xs md:text-sm text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
-                                >
-                                    <X className="w-3 h-3 md:w-4 md:h-4"/>
-                                    <span className="hidden sm:inline">Отменить</span>
-                                </button>
+                                <CheckSquare className="w-5 h-5 text-blue-600"/>
+                                <span className="text-sm font-semibold text-slate-800">
+            Выбрано: {selectedIds.length}
+          </span>
                             </div>
+
+                            <button
+                                onClick={() => setSelectedIds([])}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
+                            >
+                                <X className="w-4 h-4"/>
+                                Отменить
+                            </button>
                         </div>
 
-                        <div
-                            className={`${showBulkActions ? 'grid' : 'hidden md:grid'} grid-cols-1 lg:grid-cols-2 gap-2 md:gap-3`}>
-                            <div className="bg-white rounded-lg p-2 md:p-3 border border-blue-200">
-                                <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
-                                    Оплата Яковлеву
-                                </h3>
-                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={bulkPaymentValue}
-                                        onChange={(e) => setBulkPaymentValue(e.target.value)}
-                                        placeholder="Введите сумму"
-                                        className="flex-1 px-3 py-2 text-xs md:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                    />
-                                    <button
-                                        onClick={applyBulkPayment}
-                                        disabled={applyingBulk || !bulkPaymentValue.trim()}
-                                        className="flex items-center justify-center gap-1.5 px-3 md:px-4 py-2 text-xs md:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium whitespace-nowrap"
-                                    >
-                                        {applyingBulk ? (
-                                            <Loader2 className="w-4 h-4 animate-spin"/>
-                                        ) : (
-                                            <>
-                                                <DollarSign className="w-4 h-4"/>
-                                                Применить
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                        {/* Действия */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {/* Оплата */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={bulkPaymentValue}
+                                    onChange={e => setBulkPaymentValue(e.target.value)}
+                                    placeholder="Яковлев"
+                                    className="flex-1 h-9 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <button
+                                    onClick={applyBulkPayment}
+                                    disabled={!bulkPaymentValue.trim() || applyingBulk}
+                                    className="h-9 px-3 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
+                                >
+                                    OK
+                                </button>
                             </div>
 
-                            <div className="bg-white rounded-lg p-2 md:p-3 border border-blue-200">
-                                <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
-                                    Даты
-                                </h3>
-                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                    <input
-                                        type="date"
-                                        value={bulkIssueDate}
-                                        onChange={(e) => setBulkIssueDate(e.target.value)}
-                                        className="flex-1 px-3 py-2 text-xs md:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                        placeholder="Дата выставления"
-                                    />
-                                    <input
-                                        type="date"
-                                        value={bulkSigningDate}
-                                        onChange={(e) => setBulkSigningDate(e.target.value)}
-                                        className="flex-1 px-3 py-2 text-xs md:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                        placeholder="Дата подписания"
-                                    />
-                                    <button
-                                        onClick={applyBulkDates}
-                                        disabled={applyingBulk || (!bulkIssueDate && !bulkSigningDate)}
-                                        className="flex items-center justify-center gap-1.5 px-3 md:px-4 py-2 text-xs md:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium whitespace-nowrap"
-                                    >
-                                        {applyingBulk ? (
-                                            <Loader2 className="w-4 h-4 animate-spin"/>
-                                        ) : (
-                                            <>
-                                                <Calendar className="w-4 h-4"/>
-                                                Применить
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                            {/* Даты */}
+                            <div className="flex items-center gap-2">
+                                <input type="date" value={bulkIssueDate}
+                                       onChange={e => setBulkIssueDate(e.target.value)}
+                                       className="flex-1 h-9 px-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <input type="date" value={bulkSigningDate}
+                                       onChange={e => setBulkSigningDate(e.target.value)}
+                                       className="flex-1 h-9 px-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <button
+                                    onClick={applyBulkDates}
+                                    disabled={(!bulkIssueDate && !bulkSigningDate) || applyingBulk}
+                                    className="h-9 w-14 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
+                                >
+                                    OK
+                                </button>
                             </div>
 
-                            <div className="bg-white rounded-lg p-2 md:p-3 border border-blue-200">
-                                <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
-                                    Статус
-                                </h3>
-                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                    <select
-                                        value={bulkStatus}
-                                        onChange={(e) => setBulkStatus(e.target.value)}
-                                        className="flex-1 px-3 py-2 text-xs md:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                    >
-                                        <option value="">Выбрать статус</option>
-                                        {statusOptions.map((status) => (
-                                            <option key={status} value={status}>
-                                                {status}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <button
-                                        onClick={applyBulkStatus}
-                                        disabled={applyingBulk || !bulkStatus}
-                                        className="flex items-center justify-center gap-1.5 px-3 md:px-4 py-2 text-xs md:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium whitespace-nowrap"
-                                    >
-                                        {applyingBulk ? (
-                                            <Loader2 className="w-4 h-4 animate-spin"/>
-                                        ) : (
-                                            <>
-                                                <Filter className="w-4 h-4"/>
-                                                Применить
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                            {/* Статус */}
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={bulkStatus}
+                                    onChange={e => setBulkStatus(e.target.value)}
+                                    className="flex-1 h-9 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Статус</option>
+                                    {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+                                <button
+                                    onClick={applyBulkStatus}
+                                    disabled={!bulkStatus || applyingBulk}
+                                    className="h-9 px-3 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
+                                >
+                                    OK
+                                </button>
                             </div>
 
-                            <div className="bg-white rounded-lg p-2 md:p-3 border border-blue-200">
-                                <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
-                                    Примечание
-                                </h3>
-                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={bulkNote}
-                                        onChange={(e) => setBulkNote(e.target.value)}
-                                        placeholder="Введите примечание"
-                                        className="flex-1 px-3 py-2 text-xs md:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                    />
-                                    <button
-                                        onClick={applyBulkNote}
-                                        disabled={applyingBulk || !bulkNote.trim()}
-                                        className="flex items-center justify-center gap-1.5 px-3 md:px-4 py-2 text-xs md:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium whitespace-nowrap"
-                                    >
-                                        {applyingBulk ? (
-                                            <Loader2 className="w-4 h-4 animate-spin"/>
-                                        ) : (
-                                            <>
-                                                <FileText className="w-4 h-4"/>
-                                                Применить
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                            {/* Примечание */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={bulkNote}
+                                    onChange={e => setBulkNote(e.target.value)}
+                                    placeholder="Заметка"
+                                    className="flex-1 h-9 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <button
+                                    onClick={applyBulkNote}
+                                    disabled={!bulkNote.trim() || applyingBulk}
+                                    className="h-9 px-3 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
+                                >
+                                    OK
+                                </button>
                             </div>
                         </div>
                     </div>
