@@ -15,7 +15,15 @@ export default function App() {
 
     const handleLogin = async () => {
         try {
-            const res = await api.post('/auth/login-step-1/', {username, password});
+            // Отправка запроса с необходимыми заголовками
+            const res = await api.post('/auth/login-step-1/', {username, password}, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    // Убираем Sec-CH-UA заголовки, если они не нужны
+                }
+            });
+
             const receivedToken = res.data.token;
             setToken(receivedToken);
             localStorage.setItem('access_token', receivedToken); // сохраняем токен
