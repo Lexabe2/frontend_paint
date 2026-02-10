@@ -15,14 +15,7 @@ export default function App() {
 
     const handleLogin = async () => {
         try {
-            // Новый URL с использованием CORS Proxy
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            const apiUrl = '/auth/login-step-1/';
-            const fullUrl = proxyUrl + 'https://api.baopaint.ru' + apiUrl;
-
-            // Отправка POST-запроса через CORS Proxy
-            const res = await api.post(fullUrl, {username, password});
-
+            const res = await api.post('/auth/login-step-1/', {username, password});
             const receivedToken = res.data.token;
             setToken(receivedToken);
             localStorage.setItem('access_token', receivedToken); // сохраняем токен
