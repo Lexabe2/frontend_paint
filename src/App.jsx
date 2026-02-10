@@ -15,18 +15,17 @@ export default function App() {
 
     const handleLogin = async () => {
         try {
-            // Отправка запроса с необходимыми заголовками
             const res = await api.post('/auth/login-step-1/', {username, password}, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    // Убираем Sec-CH-UA заголовки, если они не нужны
-                }
+                },
+                withCredentials: false,          // ← добавь это! явно отключаем credentials
             });
 
             const receivedToken = res.data.token;
             setToken(receivedToken);
-            localStorage.setItem('access_token', receivedToken); // сохраняем токен
+            localStorage.setItem('access_token', receivedToken);
 
             if (res.data.has_telegram_id) {
                 setStep(3);
@@ -35,7 +34,8 @@ export default function App() {
             }
         } catch (error) {
             console.error("Ошибка входа:", error.response || error.message);
-            alert('Ошибка входа');
+            // Лучше показывать конкретную ошибку пользователю, а не просто alert
+            alert(error.response?.data?.detail || 'Ошибка входа. Проверьте логин/пароль');
         }
     };
 
