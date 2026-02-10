@@ -15,12 +15,13 @@ export default function App() {
 
     const handleLogin = async () => {
         try {
-            // Отправка запроса с необходимыми заголовками
             const res = await api.post('/auth/login-step-1/', {username, password}, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    // Убираем Sec-CH-UA заголовки, если они не нужны
+                    'Sec-Fetch-Dest': 'empty', // Устанавливаем корректное значение
+                    'Sec-Fetch-Mode': 'cors',
+                    'Sec-Fetch-Site': 'same-site',  // Задаем правильный источник запроса
                 }
             });
 
