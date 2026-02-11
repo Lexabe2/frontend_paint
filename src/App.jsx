@@ -15,13 +15,7 @@ export default function App() {
 
     const handleLogin = async () => {
         try {
-            const res = await api.post('/auth/login-step-1/', {username, password}, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                withCredentials: false,          // ← добавь это! явно отключаем credentials
-            });
+            const res = await api.post('/auth/login-step-1/', {username, password});
 
             const receivedToken = res.data.token;
             setToken(receivedToken);
