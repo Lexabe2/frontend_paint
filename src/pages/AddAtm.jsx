@@ -41,7 +41,7 @@ export default function AddAtm({onSuccess}) {
 
     useEffect(() => {
         if (modelList.length > 0 && !model) {
-            setModel(modelList[0]); // ← первая модель по умолчанию
+            setModel(modelList[1]); // ← первая модель по умолчанию
         }
     }, [modelList]);
 
