@@ -17,7 +17,7 @@ import Layout from '../layouts/Layout';
 import StatusReq from "../pages/StatusReq.jsx";
 import ATMStatusPage from "../pages/ChangesStatusAtm.jsx";
 import ActCreatePage from "../pages/ActCreatePage.jsx";
-import PPAct from '../pages/PPAct';
+
 
 export default function MainRouter() {
   return (
