@@ -53,13 +53,13 @@ export default function ResponsiveHeader() {
         }
 
         // Группа 2 - Покрасочная
-        const paintingItems = navigationGroups.group2.items.filter(item =>
+        const ppItems = navigationGroups.group2.items.filter(item =>
             !item.permission || hasPermission(item.permission)
         )
-        if (paintingItems.length > 0) {
+        if (ppItems.length > 0) {
             availableGroups.group2 = {
                 ...navigationGroups.group2,
-                items: paintingItems
+                items: ppItems
             }
         }
 
@@ -70,7 +70,7 @@ export default function ResponsiveHeader() {
 
     // Проверяем, является ли пользователь администратором (может видеть обе группы)
     const isAdmin = user?.role === 'admin'
-    const isAdminPaint = user?.role === 'admin_paint'
+    const isAdminPaint = user?.role === 'admin_pp'
 
     // Автоматически выбираем группу для пользователя
     useEffect(() => {
