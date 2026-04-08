@@ -4,12 +4,10 @@ import React from "react";
 import {useEffect, useState} from "react";
 import {motion, AnimatePresence} from "framer-motion";
 import WarehouseInfo from "../components/WarehouseInfo";
-import PaintingInfo from "../components/PaintingInfo";
 import api from "../api/axios.js";
 import {
     Home,
     Package,
-    Palette,
     User,
     Shield,
     AlertCircle,
@@ -26,7 +24,6 @@ export default function Dashboard() {
     // правила доступа
     const accessRules = {
         warehouse: ["warehouse", "admin", "supervisor"],
-        painting: ["painting", "admin"],
     };
 
     const tabConfig = {
@@ -36,19 +33,12 @@ export default function Dashboard() {
             color: "from-blue-500 to-cyan-500",
             bgColor: "from-blue-50 to-cyan-50",
         },
-        painting: {
-            label: "Покрасочная",
-            icon: Palette,
-            color: "from-purple-500 to-pink-500",
-            bgColor: "from-purple-50 to-pink-50",
-        }
     };
 
     const getRoleDisplayName = (role) => {
         const roleNames = {
             admin: "Администратор",
             warehouse: "Складской работник",
-            painting: "Покрасочный работник",
             supervisor: "Супервизор"
         };
         return roleNames[role] || role;
@@ -77,9 +67,8 @@ export default function Dashboard() {
                 // выбираем первую доступную вкладку по роли
                 if (accessRules.warehouse.includes(data.role)) {
                     setActiveTab("warehouse");
-                } else if (accessRules.painting.includes(data.role)) {
-                    setActiveTab("painting");
-                } else {
+                }
+                else {
                     setActiveTab(null);
                 }
             } catch (error) {
@@ -165,11 +154,9 @@ export default function Dashboard() {
     }
 
     const canSeeWarehouse = accessRules.warehouse.includes(user.role);
-    const canSeePainting = accessRules.painting.includes(user.role);
     const availableTabs = [];
 
     if (canSeeWarehouse) availableTabs.push("warehouse");
-    if (canSeePainting) availableTabs.push("painting");
 
     const RoleIcon = getRoleIcon(user.role);
 
@@ -278,7 +265,6 @@ export default function Dashboard() {
                             {/* Tab Content */}
                             <div className="space-y-6">
                                 {activeTab === "warehouse" && canSeeWarehouse && <WarehouseInfo/>}
-                                {activeTab === "painting" && canSeePainting && <PaintingInfo/>}
                             </div>
                         </motion.div>
                     )}

@@ -82,7 +82,7 @@ export default function WarehouseAtms() {
                 project: selectedProject,
                 device: "Hyosung",
                 quantity: countAtm,
-                status: 'На согласование(покрасочная)',
+                status: 'Ожидает окраски',
                 paint_shop: paintShop,
             };
 

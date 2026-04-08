@@ -17,6 +17,8 @@ import Layout from '../layouts/Layout';
 import StatusReq from "../pages/StatusReq.jsx";
 import ATMStatusPage from "../pages/ChangesStatusAtm.jsx";
 import ActCreatePage from "../pages/ActCreatePage.jsx";
+import PPSearchGooglAtms from "../pages/PPSearchGooglAtm.jsx";
+import PPAct from '../pages/PPAct';
 
 export default function MainRouter() {
   return (
@@ -46,6 +48,8 @@ export default function MainRouter() {
         <Route path="/status_req/:id/" element={<StatusReq />} />
         <Route path="/change_status_atm/" element={<ATMStatusPage />} />
         <Route path="/act/" element={<ActCreatePage />} />
+        <Route path="/drive_search/" element={<PPSearchGooglAtms />} />
+        <Route path="/create_act_pp/" element={<PPAct />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 
