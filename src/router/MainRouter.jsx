@@ -44,7 +44,6 @@ export default function MainRouter() {
         <Route path="/viewing_atms/" element={<AtmViewing />} />
         <Route path="/status_req/:id/" element={<StatusReq />} />
         <Route path="/change_status_atm/" element={<ATMStatusPage />} />
-        <Route path="/create_act_pp/" element={<PPAct />} />
         {/* Добавляй другие защищённые страницы здесь */}
       </Route>
 
