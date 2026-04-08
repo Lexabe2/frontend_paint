@@ -105,15 +105,6 @@ export const navigationGroups = {
                 path: "/dashboard",
                 category: 'pp'
             },
-            {
-                id: "search_google_atm",
-                label: "Создание актов",
-                icon: Home,
-                color: "from-blue-500 to-cyan-500",
-                permission: "dashboard",
-                path: "/create_act_pp",
-                category: 'pp'
-            },
         ],
     },
 }
