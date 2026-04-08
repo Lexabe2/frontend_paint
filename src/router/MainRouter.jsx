@@ -18,7 +18,6 @@ import StatusReq from "../pages/StatusReq.jsx";
 import ATMStatusPage from "../pages/ChangesStatusAtm.jsx";
 import ActCreatePage from "../pages/ActCreatePage.jsx";
 
-
 export default function MainRouter() {
   return (
     <Routes>
